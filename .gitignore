@@ -22,3 +22,24 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+
+# Maven
+target/
+out/
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# OS
+.DS_Store
+
+# Claude Code project settings (local to this machine)
+.claude/
+
+# Unrelated content that happens to live in this folder, not part of the GetTicket server
+.venv/
+hamshech-extension/
+page-refresh-extension/
