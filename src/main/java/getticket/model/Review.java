@@ -1,29 +1,17 @@
 package getticket.model;
 
-import java.io.Serializable;
-
-public class Review implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class Review {
 
     private int reviewId;
     private int sid;
     private int uid;
-    private int rating;
+    private int rating; // 1-5, enforced by chk_reviews_rating in the schema
     private String comment;
 
     public Review() {
     }
 
     public Review(int sid, int uid, int rating, String comment) {
-        this.sid = sid;
-        this.uid = uid;
-        this.rating = rating;
-        this.comment = comment;
-    }
-
-    public Review(int reviewId, int sid, int uid, int rating, String comment) {
-        this.reviewId = reviewId;
         this.sid = sid;
         this.uid = uid;
         this.rating = rating;
@@ -72,12 +60,6 @@ public class Review implements Serializable {
 
     @Override
     public String toString() {
-        return "Review{" +
-                "reviewId=" + reviewId +
-                ", sid=" + sid +
-                ", uid=" + uid +
-                ", rating=" + rating +
-                ", comment='" + comment + '\'' +
-                '}';
+        return "Review{reviewId=" + reviewId + ", sid=" + sid + ", uid=" + uid + ", rating=" + rating + "}";
     }
 }

@@ -1,49 +1,91 @@
 package getticket.util;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
 
 /**
- * Salted SHA-256 password hashing, so User.password is never stored or compared in plain text
- * (design doc requires passwords to be kept encrypted in the database).
+ * Password hashing using PBKDF2WithHmacSHA256 — a slow, salted,
+ * iterated hash. Slow is the point: it makes brute-forcing a stolen
+ * password list expensive. Built entirely on the JDK, no external
+ * dependency required.
+ *
+ * Stored format: "iterations:base64(salt):base64(hash)"
+ * e.g. "65536:k3F2p9...:aZ81mQ..." — fits comfortably in Password VARCHAR(255).
  */
 public final class PasswordUtil {
 
-    private static final int SALT_BYTES = 16;
+    private static final int SALT_LENGTH_BYTES = 16;
+    private static final int HASH_LENGTH_BITS = 256;
+    private static final int ITERATIONS = 65536;
+    private static final String ALGORITHM = "PBKDF2WithHmacSHA256";
 
     private PasswordUtil() {
+        // utility class, no instances
     }
 
-    /** Produces a new "base64(salt):base64(hash)" string suitable for storing in Users.Password. */
-    public static String hash(String rawPassword) {
-        byte[] salt = new byte[SALT_BYTES];
+    /** Hashes a plaintext password. Store the returned string as-is in Users.Password. */
+    public static String hash(String plainPassword) {
+        byte[] salt = generateSalt();
+        byte[] hash = pbkdf2(plainPassword.toCharArray(), salt, ITERATIONS, HASH_LENGTH_BITS);
+        return ITERATIONS + ":" + encode(salt) + ":" + encode(hash);
+    }
+
+    /** Checks a plaintext password (login attempt) against a hash produced by hash(). */
+    public static boolean verify(String plainPassword, String storedHash) {
+        String[] parts = storedHash.split(":");
+        if (parts.length != 3) {
+            throw new IllegalArgumentException("Stored hash is not in the expected 'iterations:salt:hash' format");
+        }
+
+        int iterations = Integer.parseInt(parts[0]);
+        byte[] salt = decode(parts[1]);
+        byte[] expectedHash = decode(parts[2]);
+
+        byte[] actualHash = pbkdf2(plainPassword.toCharArray(), salt, iterations, expectedHash.length * 8);
+
+        // A plain == or Arrays.equals() would return faster for an
+        // early mismatched byte than a full match — an attacker who
+        // can measure response time could exploit that. Comparing
+        // every byte regardless closes that side channel.
+        return constantTimeEquals(expectedHash, actualHash);
+    }
+
+    private static byte[] generateSalt() {
+        byte[] salt = new byte[SALT_LENGTH_BYTES];
         new SecureRandom().nextBytes(salt);
-        byte[] digest = digest(rawPassword, salt);
-        return Base64.getEncoder().encodeToString(salt) + ":" + Base64.getEncoder().encodeToString(digest);
+        return salt;
     }
 
-    /** Checks rawPassword against a hash previously produced by {@link #hash}. */
-    public static boolean verify(String rawPassword, String storedHash) {
-        String[] parts = storedHash.split(":", 2);
-        if (parts.length != 2) {
+    private static byte[] pbkdf2(char[] password, byte[] salt, int iterations, int keyLengthBits) {
+        try {
+            PBEKeySpec spec = new PBEKeySpec(password, salt, iterations, keyLengthBits);
+            SecretKeyFactory factory = SecretKeyFactory.getInstance(ALGORITHM);
+            return factory.generateSecret(spec).getEncoded();
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            throw new RuntimeException("Password hashing failed", e);
+        }
+    }
+
+    private static boolean constantTimeEquals(byte[] a, byte[] b) {
+        if (a.length != b.length) {
             return false;
         }
-        byte[] salt = Base64.getDecoder().decode(parts[0]);
-        byte[] expectedDigest = Base64.getDecoder().decode(parts[1]);
-        byte[] actualDigest = digest(rawPassword, salt);
-        return MessageDigest.isEqual(expectedDigest, actualDigest);
+        int diff = 0;
+        for (int i = 0; i < a.length; i++) {
+            diff |= a[i] ^ b[i];
+        }
+        return diff == 0;
     }
 
-    private static byte[] digest(String rawPassword, byte[] salt) {
-        try {
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            md.update(salt);
-            return md.digest(rawPassword.getBytes(StandardCharsets.UTF_8));
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException("SHA-256 not available", e);
-        }
+    private static String encode(byte[] bytes) {
+        return Base64.getEncoder().encodeToString(bytes);
+    }
+
+    private static byte[] decode(String str) {
+        return Base64.getDecoder().decode(str);
     }
 }

@@ -1,11 +1,8 @@
 package getticket.model;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 
-public class EventInstance implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class EventInstance {
 
     private int instanceId;
     private int sid;
@@ -18,19 +15,8 @@ public class EventInstance implements Serializable {
     public EventInstance() {
     }
 
-    public EventInstance(int sid, int vid, LocalDateTime startTime, double ticketPrice,
-                          int availableTickets, String eventStatus) {
-        this.sid = sid;
-        this.vid = vid;
-        this.startTime = startTime;
-        this.ticketPrice = ticketPrice;
-        this.availableTickets = availableTickets;
-        this.eventStatus = eventStatus;
-    }
-
-    public EventInstance(int instanceId, int sid, int vid, LocalDateTime startTime, double ticketPrice,
-                          int availableTickets, String eventStatus) {
-        this.instanceId = instanceId;
+    public EventInstance(int sid, int vid, LocalDateTime startTime,
+                          double ticketPrice, int availableTickets, String eventStatus) {
         this.sid = sid;
         this.vid = vid;
         this.startTime = startTime;
@@ -97,14 +83,8 @@ public class EventInstance implements Serializable {
 
     @Override
     public String toString() {
-        return "EventInstance{" +
-                "instanceId=" + instanceId +
-                ", sid=" + sid +
-                ", vid=" + vid +
-                ", startTime=" + startTime +
-                ", ticketPrice=" + ticketPrice +
-                ", availableTickets=" + availableTickets +
-                ", eventStatus='" + eventStatus + '\'' +
-                '}';
+        return "EventInstance{instanceId=" + instanceId + ", sid=" + sid + ", vid=" + vid
+                + ", startTime=" + startTime + ", availableTickets=" + availableTickets
+                + ", status=" + eventStatus + "}";
     }
 }

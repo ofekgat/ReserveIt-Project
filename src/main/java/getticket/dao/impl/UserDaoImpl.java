@@ -2,141 +2,134 @@ package getticket.dao.impl;
 
 import getticket.dao.UserDao;
 import getticket.model.User;
-import getticket.util.ConnectionPool;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class UserDaoImpl implements UserDao {
+public class UserDaoImpl extends BaseDao implements UserDao {
 
-    private static final String INSERT_SQL =
-            "INSERT INTO Users (Uname, Password, Email, Role) VALUES (?, ?, ?, ?)";
-    private static final String SELECT_BY_ID_SQL = "SELECT * FROM Users WHERE Uid = ?";
-    private static final String SELECT_ALL_SQL = "SELECT * FROM Users";
-    private static final String SELECT_BY_USERNAME_SQL = "SELECT * FROM Users WHERE Uname = ?";
-    private static final String UPDATE_SQL =
-            "UPDATE Users SET Uname = ?, Password = ?, Email = ?, Role = ? WHERE Uid = ?";
-    private static final String DELETE_SQL = "DELETE FROM Users WHERE Uid = ?";
+    private static final String COLS = "Uid, Uname, Password, Email, Role";
 
     @Override
     public int create(User user) throws SQLException {
-        Connection conn = null;
-        try {
-            conn = ConnectionPool.getInstance().getConnection();
-            try (PreparedStatement ps = conn.prepareStatement(INSERT_SQL, Statement.RETURN_GENERATED_KEYS)) {
-                ps.setString(1, user.getUname());
-                ps.setString(2, user.getPassword());
-                ps.setString(3, user.getEmail());
-                ps.setString(4, user.getRole());
-                ps.executeUpdate();
-                try (ResultSet keys = ps.getGeneratedKeys()) {
-                    if (keys.next()) {
-                        int id = keys.getInt(1);
-                        user.setUid(id);
-                        return id;
-                    }
+        return withConnection(conn -> create(user, conn));
+    }
+
+    @Override
+    public int create(User user, Connection conn) throws SQLException {
+        String sql = "INSERT INTO Users (Uname, Password, Email, Role) VALUES (?, ?, ?, ?)";
+        try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setString(1, user.getUname());
+            ps.setString(2, user.getPassword());
+            ps.setString(3, user.getEmail());
+            ps.setString(4, user.getRole());
+            ps.executeUpdate();
+            try (ResultSet keys = ps.getGeneratedKeys()) {
+                if (keys.next()) {
+                    int id = keys.getInt(1);
+                    user.setUid(id);
+                    return id;
                 }
-                throw new SQLException("Creating user failed, no generated key obtained.");
+                throw new SQLException("Insert succeeded but no generated key was returned.");
             }
-        } finally {
-            ConnectionPool.getInstance().releaseConnection(conn);
         }
     }
 
     @Override
-    public User getById(int id) throws SQLException {
-        Connection conn = null;
-        try {
-            conn = ConnectionPool.getInstance().getConnection();
-            try (PreparedStatement ps = conn.prepareStatement(SELECT_BY_ID_SQL)) {
-                ps.setInt(1, id);
-                try (ResultSet rs = ps.executeQuery()) {
-                    return rs.next() ? mapRow(rs) : null;
-                }
-            }
-        } finally {
-            ConnectionPool.getInstance().releaseConnection(conn);
-        }
+    public User getById(int uid) throws SQLException {
+        return withConnection(conn -> getById(uid, conn));
     }
 
     @Override
-    public List<User> getAll() throws SQLException {
-        Connection conn = null;
-        try {
-            conn = ConnectionPool.getInstance().getConnection();
-            try (PreparedStatement ps = conn.prepareStatement(SELECT_ALL_SQL);
-                 ResultSet rs = ps.executeQuery()) {
-                List<User> users = new ArrayList<>();
-                while (rs.next()) {
-                    users.add(mapRow(rs));
-                }
-                return users;
+    public User getById(int uid, Connection conn) throws SQLException {
+        String sql = "SELECT " + COLS + " FROM Users WHERE Uid = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, uid);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? mapRow(rs) : null;
             }
-        } finally {
-            ConnectionPool.getInstance().releaseConnection(conn);
         }
     }
 
     @Override
     public User getByUsername(String uname) throws SQLException {
-        Connection conn = null;
-        try {
-            conn = ConnectionPool.getInstance().getConnection();
-            try (PreparedStatement ps = conn.prepareStatement(SELECT_BY_USERNAME_SQL)) {
-                ps.setString(1, uname);
-                try (ResultSet rs = ps.executeQuery()) {
-                    return rs.next() ? mapRow(rs) : null;
-                }
+        return withConnection(conn -> getByUsername(uname, conn));
+    }
+
+    @Override
+    public User getByUsername(String uname, Connection conn) throws SQLException {
+        String sql = "SELECT " + COLS + " FROM Users WHERE Uname = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, uname);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? mapRow(rs) : null;
             }
-        } finally {
-            ConnectionPool.getInstance().releaseConnection(conn);
+        }
+    }
+
+    @Override
+    public List<User> getAll() throws SQLException {
+        return withConnection(this::getAll);
+    }
+
+    @Override
+    public List<User> getAll(Connection conn) throws SQLException {
+        String sql = "SELECT " + COLS + " FROM Users ORDER BY Uid";
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            return mapRows(rs);
         }
     }
 
     @Override
     public boolean update(User user) throws SQLException {
-        Connection conn = null;
-        try {
-            conn = ConnectionPool.getInstance().getConnection();
-            try (PreparedStatement ps = conn.prepareStatement(UPDATE_SQL)) {
-                ps.setString(1, user.getUname());
-                ps.setString(2, user.getPassword());
-                ps.setString(3, user.getEmail());
-                ps.setString(4, user.getRole());
-                ps.setInt(5, user.getUid());
-                return ps.executeUpdate() > 0;
-            }
-        } finally {
-            ConnectionPool.getInstance().releaseConnection(conn);
+        return withConnection(conn -> update(user, conn));
+    }
+
+    @Override
+    public boolean update(User user, Connection conn) throws SQLException {
+        // Password is excluded on purpose — changing it should go through
+        // a dedicated method so it can't be overwritten by accident.
+        String sql = "UPDATE Users SET Uname = ?, Email = ?, Role = ? WHERE Uid = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, user.getUname());
+            ps.setString(2, user.getEmail());
+            ps.setString(3, user.getRole());
+            ps.setInt(4, user.getUid());
+            return ps.executeUpdate() == 1;
         }
     }
 
     @Override
-    public boolean delete(int id) throws SQLException {
-        Connection conn = null;
-        try {
-            conn = ConnectionPool.getInstance().getConnection();
-            try (PreparedStatement ps = conn.prepareStatement(DELETE_SQL)) {
-                ps.setInt(1, id);
-                return ps.executeUpdate() > 0;
-            }
-        } finally {
-            ConnectionPool.getInstance().releaseConnection(conn);
+    public boolean delete(int uid) throws SQLException {
+        return withConnection(conn -> delete(uid, conn));
+    }
+
+    @Override
+    public boolean delete(int uid, Connection conn) throws SQLException {
+        String sql = "DELETE FROM Users WHERE Uid = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, uid);
+            return ps.executeUpdate() == 1;
         }
     }
 
+    private List<User> mapRows(ResultSet rs) throws SQLException {
+        List<User> list = new ArrayList<>();
+        while (rs.next()) {
+            list.add(mapRow(rs));
+        }
+        return list;
+    }
+
     private User mapRow(ResultSet rs) throws SQLException {
-        return new User(
-                rs.getInt("Uid"),
-                rs.getString("Uname"),
-                rs.getString("Password"),
-                rs.getString("Email"),
-                rs.getString("Role")
-        );
+        User user = new User();
+        user.setUid(rs.getInt("Uid"));
+        user.setUname(rs.getString("Uname"));
+        user.setPassword(rs.getString("Password"));
+        user.setEmail(rs.getString("Email"));
+        user.setRole(rs.getString("Role"));
+        return user;
     }
 }

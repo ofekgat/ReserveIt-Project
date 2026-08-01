@@ -2,194 +2,183 @@ package getticket.dao.impl;
 
 import getticket.dao.SeatDao;
 import getticket.model.Seat;
-import getticket.util.ConnectionPool;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-public class SeatDaoImpl implements SeatDao {
+public class SeatDaoImpl extends BaseDao implements SeatDao {
 
-    private static final String INSERT_SQL =
-            "INSERT INTO Seats (Vid, Row_num, Seat_num) VALUES (?, ?, ?)";
-    private static final String SELECT_BY_ID_SQL = "SELECT * FROM Seats WHERE Seat_id = ?";
-    private static final String SELECT_ALL_SQL = "SELECT * FROM Seats";
-    private static final String SELECT_BY_VENUE_SQL =
-            "SELECT * FROM Seats WHERE Vid = ? ORDER BY Row_num, Seat_num";
-    private static final String SELECT_AVAILABLE_SQL =
-            "SELECT s.* FROM Seats s " +
-            "JOIN Event_Instances ei ON ei.Vid = s.Vid " +
-            "WHERE ei.Instance_id = ? " +
-            "AND s.Seat_id NOT IN (" +
-            "    SELECT t.Seat_id FROM Tickets t WHERE t.Instance_id = ? AND t.Seat_id IS NOT NULL" +
-            ") ORDER BY s.Row_num, s.Seat_num";
-    private static final String UPDATE_SQL =
-            "UPDATE Seats SET Vid = ?, Row_num = ?, Seat_num = ? WHERE Seat_id = ?";
-    private static final String DELETE_SQL = "DELETE FROM Seats WHERE Seat_id = ?";
+    private static final String COLS = "Seat_id, Vid, Row_num, Seat_num";
 
     @Override
     public int create(Seat seat) throws SQLException {
-        Connection conn = null;
-        try {
-            conn = ConnectionPool.getInstance().getConnection();
-            try (PreparedStatement ps = conn.prepareStatement(INSERT_SQL, Statement.RETURN_GENERATED_KEYS)) {
+        return withConnection(conn -> create(seat, conn));
+    }
+
+    @Override
+    public int create(Seat seat, Connection conn) throws SQLException {
+        String sql = "INSERT INTO Seats (Vid, Row_num, Seat_num) VALUES (?, ?, ?)";
+        try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setInt(1, seat.getVid());
+            ps.setInt(2, seat.getRowNum());
+            ps.setInt(3, seat.getSeatNum());
+            ps.executeUpdate();
+            try (ResultSet keys = ps.getGeneratedKeys()) {
+                if (keys.next()) {
+                    int id = keys.getInt(1);
+                    seat.setSeatId(id);
+                    return id;
+                }
+                throw new SQLException("Insert succeeded but no generated key was returned.");
+            }
+        }
+    }
+
+    @Override
+    public void createBatch(List<Seat> seats, Connection conn) throws SQLException {
+        String sql = "INSERT INTO Seats (Vid, Row_num, Seat_num) VALUES (?, ?, ?)";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            for (Seat seat : seats) {
                 ps.setInt(1, seat.getVid());
                 ps.setInt(2, seat.getRowNum());
                 ps.setInt(3, seat.getSeatNum());
-                ps.executeUpdate();
-                try (ResultSet keys = ps.getGeneratedKeys()) {
-                    if (keys.next()) {
-                        int id = keys.getInt(1);
-                        seat.setSeatId(id);
-                        return id;
-                    }
-                }
-                throw new SQLException("Creating seat failed, no generated key obtained.");
+                ps.addBatch();
             }
-        } finally {
-            ConnectionPool.getInstance().releaseConnection(conn);
+            ps.executeBatch();
         }
     }
 
     @Override
-    public Seat getById(int id) throws SQLException {
-        Connection conn = null;
-        try {
-            conn = ConnectionPool.getInstance().getConnection();
-            try (PreparedStatement ps = conn.prepareStatement(SELECT_BY_ID_SQL)) {
-                ps.setInt(1, id);
-                try (ResultSet rs = ps.executeQuery()) {
-                    return rs.next() ? mapRow(rs) : null;
-                }
-            }
-        } finally {
-            ConnectionPool.getInstance().releaseConnection(conn);
-        }
+    public Seat getById(int seatId) throws SQLException {
+        return withConnection(conn -> getById(seatId, conn));
     }
 
     @Override
-    public List<Seat> getAll() throws SQLException {
-        Connection conn = null;
-        try {
-            conn = ConnectionPool.getInstance().getConnection();
-            try (PreparedStatement ps = conn.prepareStatement(SELECT_ALL_SQL);
-                 ResultSet rs = ps.executeQuery()) {
-                List<Seat> seats = new ArrayList<>();
-                while (rs.next()) {
-                    seats.add(mapRow(rs));
-                }
-                return seats;
+    public Seat getById(int seatId, Connection conn) throws SQLException {
+        String sql = "SELECT " + COLS + " FROM Seats WHERE Seat_id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, seatId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? mapRow(rs) : null;
             }
-        } finally {
-            ConnectionPool.getInstance().releaseConnection(conn);
         }
     }
 
     @Override
     public List<Seat> getSeatsByVenue(int vid) throws SQLException {
-        Connection conn = null;
-        try {
-            conn = ConnectionPool.getInstance().getConnection();
-            try (PreparedStatement ps = conn.prepareStatement(SELECT_BY_VENUE_SQL)) {
-                ps.setInt(1, vid);
-                try (ResultSet rs = ps.executeQuery()) {
-                    List<Seat> seats = new ArrayList<>();
-                    while (rs.next()) {
-                        seats.add(mapRow(rs));
-                    }
-                    return seats;
-                }
+        return withConnection(conn -> getSeatsByVenue(vid, conn));
+    }
+
+    @Override
+    public List<Seat> getSeatsByVenue(int vid, Connection conn) throws SQLException {
+        String sql = "SELECT " + COLS + " FROM Seats WHERE Vid = ? ORDER BY Row_num, Seat_num";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, vid);
+            try (ResultSet rs = ps.executeQuery()) {
+                return mapRows(rs);
             }
-        } finally {
-            ConnectionPool.getInstance().releaseConnection(conn);
         }
     }
 
     @Override
     public List<Seat> getAvailableSeats(int instanceId) throws SQLException {
-        Connection conn = null;
-        try {
-            conn = ConnectionPool.getInstance().getConnection();
-            try (PreparedStatement ps = conn.prepareStatement(SELECT_AVAILABLE_SQL)) {
-                ps.setInt(1, instanceId);
-                ps.setInt(2, instanceId);
-                try (ResultSet rs = ps.executeQuery()) {
-                    List<Seat> seats = new ArrayList<>();
-                    while (rs.next()) {
-                        seats.add(mapRow(rs));
-                    }
-                    return seats;
-                }
+        return withConnection(conn -> getAvailableSeats(instanceId, conn));
+    }
+
+    @Override
+    public List<Seat> getAvailableSeats(int instanceId, Connection conn) throws SQLException {
+        // LEFT JOIN + IS NULL = "seats with no matching ticket for this instance".
+        String sql =
+            "SELECT s.Seat_id, s.Vid, s.Row_num, s.Seat_num " +
+            "FROM Seats s " +
+            "JOIN Event_Instances ei ON ei.Vid = s.Vid " +
+            "LEFT JOIN Tickets t ON t.Seat_id = s.Seat_id AND t.Instance_id = ei.Instance_id " +
+            "WHERE ei.Instance_id = ? AND t.Ticket_id IS NULL " +
+            "ORDER BY s.Row_num, s.Seat_num";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, instanceId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return mapRows(rs);
             }
-        } finally {
-            ConnectionPool.getInstance().releaseConnection(conn);
         }
     }
 
     @Override
     public List<Integer> getBookedSeatIds(List<Integer> seatIds, int instanceId, Connection conn) throws SQLException {
-        if (seatIds.isEmpty()) {
-            return Collections.emptyList();
+        List<Integer> booked = new ArrayList<>();
+        if (seatIds == null || seatIds.isEmpty()) {
+            return booked;
         }
-        String placeholders = String.join(",", Collections.nCopies(seatIds.size(), "?"));
-        String sql = "SELECT Seat_id FROM Tickets WHERE Instance_id = ? AND Seat_id IN (" + placeholders + ")";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+
+        // IN (?) needs one placeholder per id, built to match the list
+        // size. The ids themselves are still bound as parameters, so
+        // this stays injection-safe.
+        StringBuilder sql = new StringBuilder(
+                "SELECT Seat_id FROM Tickets WHERE Instance_id = ? AND Seat_id IN (");
+        for (int i = 0; i < seatIds.size(); i++) {
+            sql.append(i == 0 ? "?" : ", ?");
+        }
+        sql.append(")");
+
+        try (PreparedStatement ps = conn.prepareStatement(sql.toString())) {
             ps.setInt(1, instanceId);
             for (int i = 0; i < seatIds.size(); i++) {
                 ps.setInt(i + 2, seatIds.get(i));
             }
             try (ResultSet rs = ps.executeQuery()) {
-                List<Integer> booked = new ArrayList<>();
                 while (rs.next()) {
                     booked.add(rs.getInt("Seat_id"));
                 }
-                return booked;
             }
         }
+        return booked;
     }
 
     @Override
     public boolean update(Seat seat) throws SQLException {
-        Connection conn = null;
-        try {
-            conn = ConnectionPool.getInstance().getConnection();
-            try (PreparedStatement ps = conn.prepareStatement(UPDATE_SQL)) {
-                ps.setInt(1, seat.getVid());
-                ps.setInt(2, seat.getRowNum());
-                ps.setInt(3, seat.getSeatNum());
-                ps.setInt(4, seat.getSeatId());
-                return ps.executeUpdate() > 0;
-            }
-        } finally {
-            ConnectionPool.getInstance().releaseConnection(conn);
+        return withConnection(conn -> update(seat, conn));
+    }
+
+    @Override
+    public boolean update(Seat seat, Connection conn) throws SQLException {
+        String sql = "UPDATE Seats SET Row_num = ?, Seat_num = ? WHERE Seat_id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, seat.getRowNum());
+            ps.setInt(2, seat.getSeatNum());
+            ps.setInt(3, seat.getSeatId());
+            return ps.executeUpdate() == 1;
         }
     }
 
     @Override
-    public boolean delete(int id) throws SQLException {
-        Connection conn = null;
-        try {
-            conn = ConnectionPool.getInstance().getConnection();
-            try (PreparedStatement ps = conn.prepareStatement(DELETE_SQL)) {
-                ps.setInt(1, id);
-                return ps.executeUpdate() > 0;
-            }
-        } finally {
-            ConnectionPool.getInstance().releaseConnection(conn);
+    public boolean delete(int seatId) throws SQLException {
+        return withConnection(conn -> delete(seatId, conn));
+    }
+
+    @Override
+    public boolean delete(int seatId, Connection conn) throws SQLException {
+        String sql = "DELETE FROM Seats WHERE Seat_id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, seatId);
+            return ps.executeUpdate() == 1;
         }
     }
 
+    private List<Seat> mapRows(ResultSet rs) throws SQLException {
+        List<Seat> seats = new ArrayList<>();
+        while (rs.next()) {
+            seats.add(mapRow(rs));
+        }
+        return seats;
+    }
+
     private Seat mapRow(ResultSet rs) throws SQLException {
-        return new Seat(
-                rs.getInt("Seat_id"),
-                rs.getInt("Vid"),
-                rs.getInt("Row_num"),
-                rs.getInt("Seat_num")
-        );
+        Seat seat = new Seat();
+        seat.setSeatId(rs.getInt("Seat_id"));
+        seat.setVid(rs.getInt("Vid"));
+        seat.setRowNum(rs.getInt("Row_num"));
+        seat.setSeatNum(rs.getInt("Seat_num"));
+        return seat;
     }
 }

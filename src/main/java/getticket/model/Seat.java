@@ -1,10 +1,6 @@
 package getticket.model;
 
-import java.io.Serializable;
-
-public class Seat implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class Seat {
 
     private int seatId;
     private int vid;
@@ -15,13 +11,6 @@ public class Seat implements Serializable {
     }
 
     public Seat(int vid, int rowNum, int seatNum) {
-        this.vid = vid;
-        this.rowNum = rowNum;
-        this.seatNum = seatNum;
-    }
-
-    public Seat(int seatId, int vid, int rowNum, int seatNum) {
-        this.seatId = seatId;
         this.vid = vid;
         this.rowNum = rowNum;
         this.seatNum = seatNum;
@@ -61,11 +50,6 @@ public class Seat implements Serializable {
 
     @Override
     public String toString() {
-        return "Seat{" +
-                "seatId=" + seatId +
-                ", vid=" + vid +
-                ", rowNum=" + rowNum +
-                ", seatNum=" + seatNum +
-                '}';
+        return "Seat{seatId=" + seatId + ", row=" + rowNum + ", seat=" + seatNum + "}";
     }
 }

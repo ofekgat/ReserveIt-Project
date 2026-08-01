@@ -1,22 +1,38 @@
 package getticket.dao;
 
 import getticket.model.Seat;
-
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
-public interface SeatDao extends GenericDao<Seat> {
+public interface SeatDao {
 
-    /** All physical seats belonging to a venue; used to render the seat map. */
+    int create(Seat seat) throws SQLException;
+    int create(Seat seat, Connection conn) throws SQLException;
+
+    /** Inserts many seats in one round trip — used when a venue's seat map is created. */
+    void createBatch(List<Seat> seats, Connection conn) throws SQLException;
+
+    Seat getById(int seatId) throws SQLException;
+    Seat getById(int seatId, Connection conn) throws SQLException;
+
     List<Seat> getSeatsByVenue(int vid) throws SQLException;
+    List<Seat> getSeatsByVenue(int vid, Connection conn) throws SQLException;
 
-    /** Seats in the event instance's venue that are not yet linked to a ticket for that instance. */
+    /** Seats in this instance's venue that have no ticket yet for this instance. */
     List<Seat> getAvailableSeats(int instanceId) throws SQLException;
+    List<Seat> getAvailableSeats(int instanceId, Connection conn) throws SQLException;
 
     /**
-     * Of the given seatIds, returns the ones that already have a ticket for this instance.
-     * Runs on the caller's transaction so the check is consistent with a prior FOR UPDATE lock.
+     * Of the given seat ids, returns those already ticketed for this
+     * instance. An empty result means every requested seat is still free.
+     * Called inside the checkout transaction, after the instance row is locked.
      */
     List<Integer> getBookedSeatIds(List<Integer> seatIds, int instanceId, Connection conn) throws SQLException;
+
+    boolean update(Seat seat) throws SQLException;
+    boolean update(Seat seat, Connection conn) throws SQLException;
+
+    boolean delete(int seatId) throws SQLException;
+    boolean delete(int seatId, Connection conn) throws SQLException;
 }

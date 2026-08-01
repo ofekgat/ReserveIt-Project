@@ -1,10 +1,6 @@
 package getticket.model;
 
-import java.io.Serializable;
-
-public class Location implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class Location {
 
     private int locationId;
     private String city;
@@ -14,12 +10,6 @@ public class Location implements Serializable {
     }
 
     public Location(String city, String address) {
-        this.city = city;
-        this.address = address;
-    }
-
-    public Location(int locationId, String city, String address) {
-        this.locationId = locationId;
         this.city = city;
         this.address = address;
     }
@@ -50,10 +40,6 @@ public class Location implements Serializable {
 
     @Override
     public String toString() {
-        return "Location{" +
-                "locationId=" + locationId +
-                ", city='" + city + '\'' +
-                ", address='" + address + '\'' +
-                '}';
+        return "Location{locationId=" + locationId + ", city='" + city + "', address='" + address + "'}";
     }
 }

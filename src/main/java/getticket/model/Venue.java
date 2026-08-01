@@ -1,10 +1,6 @@
 package getticket.model;
 
-import java.io.Serializable;
-
-public class Venue implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class Venue {
 
     private int vid;
     private int locationId;
@@ -16,14 +12,6 @@ public class Venue implements Serializable {
     }
 
     public Venue(int locationId, String vname, boolean isNumbered, int vcapacity) {
-        this.locationId = locationId;
-        this.vname = vname;
-        this.isNumbered = isNumbered;
-        this.vcapacity = vcapacity;
-    }
-
-    public Venue(int vid, int locationId, String vname, boolean isNumbered, int vcapacity) {
-        this.vid = vid;
         this.locationId = locationId;
         this.vname = vname;
         this.isNumbered = isNumbered;
@@ -72,12 +60,6 @@ public class Venue implements Serializable {
 
     @Override
     public String toString() {
-        return "Venue{" +
-                "vid=" + vid +
-                ", locationId=" + locationId +
-                ", vname='" + vname + '\'' +
-                ", isNumbered=" + isNumbered +
-                ", vcapacity=" + vcapacity +
-                '}';
+        return "Venue{vid=" + vid + ", vname='" + vname + "', isNumbered=" + isNumbered + ", vcapacity=" + vcapacity + "}";
     }
 }

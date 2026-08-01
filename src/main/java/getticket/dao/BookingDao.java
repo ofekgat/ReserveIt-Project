@@ -1,16 +1,24 @@
 package getticket.dao;
 
 import getticket.model.Booking;
-
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
-public interface BookingDao extends GenericDao<Booking> {
+public interface BookingDao {
 
-    /** A user's booking history, for the "my bookings" personal area. */
-    List<Booking> getBookingsByUser(int uid) throws SQLException;
-
-    /** Same as {@link #create(Booking)} but runs on the caller's transaction. */
+    int create(Booking booking) throws SQLException;
     int create(Booking booking, Connection conn) throws SQLException;
+
+    Booking getById(int bookingId) throws SQLException;
+    Booking getById(int bookingId, Connection conn) throws SQLException;
+
+    List<Booking> getBookingsByUser(int uid) throws SQLException;
+    List<Booking> getBookingsByUser(int uid, Connection conn) throws SQLException;
+
+    boolean update(Booking booking) throws SQLException;
+    boolean update(Booking booking, Connection conn) throws SQLException;
+
+    boolean delete(int bookingId) throws SQLException;
+    boolean delete(int bookingId, Connection conn) throws SQLException;
 }

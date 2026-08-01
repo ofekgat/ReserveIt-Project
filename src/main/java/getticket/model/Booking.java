@@ -1,11 +1,8 @@
 package getticket.model;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 
-public class Booking implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class Booking {
 
     private int bookingId;
     private int uid;
@@ -17,14 +14,6 @@ public class Booking implements Serializable {
     }
 
     public Booking(int uid, LocalDateTime bookingTime, double totalPrice, String status) {
-        this.uid = uid;
-        this.bookingTime = bookingTime;
-        this.totalPrice = totalPrice;
-        this.status = status;
-    }
-
-    public Booking(int bookingId, int uid, LocalDateTime bookingTime, double totalPrice, String status) {
-        this.bookingId = bookingId;
         this.uid = uid;
         this.bookingTime = bookingTime;
         this.totalPrice = totalPrice;
@@ -73,12 +62,6 @@ public class Booking implements Serializable {
 
     @Override
     public String toString() {
-        return "Booking{" +
-                "bookingId=" + bookingId +
-                ", uid=" + uid +
-                ", bookingTime=" + bookingTime +
-                ", totalPrice=" + totalPrice +
-                ", status='" + status + '\'' +
-                '}';
+        return "Booking{bookingId=" + bookingId + ", uid=" + uid + ", totalPrice=" + totalPrice + ", status=" + status + "}";
     }
 }

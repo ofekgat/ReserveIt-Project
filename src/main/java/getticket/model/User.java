@@ -1,14 +1,14 @@
 package getticket.model;
 
-import java.io.Serializable;
-
-public class User implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+/**
+ * Plain data holder for one row in the Users table.
+ * No logic here — mapping rows to objects and back happens in UserDAOImpl.
+ */
+public class User {
 
     private int uid;
     private String uname;
-    private String password;
+    private String password; // stores a HASH, never plaintext
     private String email;
     private String role;
 
@@ -16,14 +16,6 @@ public class User implements Serializable {
     }
 
     public User(String uname, String password, String email, String role) {
-        this.uname = uname;
-        this.password = password;
-        this.email = email;
-        this.role = role;
-    }
-
-    public User(int uid, String uname, String password, String email, String role) {
-        this.uid = uid;
         this.uname = uname;
         this.password = password;
         this.email = email;
@@ -72,11 +64,6 @@ public class User implements Serializable {
 
     @Override
     public String toString() {
-        return "User{" +
-                "uid=" + uid +
-                ", uname='" + uname + '\'' +
-                ", email='" + email + '\'' +
-                ", role='" + role + '\'' +
-                '}';
+        return "User{uid=" + uid + ", uname='" + uname + "', email='" + email + "', role=" + role + "}";
     }
 }
