@@ -1,6 +1,10 @@
 package getticket.model;
 
-public class Seat {
+import java.io.Serializable;
+
+public class Seat implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private int seatId;
     private int vid;

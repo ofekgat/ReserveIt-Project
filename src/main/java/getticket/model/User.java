@@ -1,10 +1,14 @@
 package getticket.model;
 
+import java.io.Serializable;
+
 /**
  * Plain data holder for one row in the Users table.
  * No logic here — mapping rows to objects and back happens in UserDAOImpl.
  */
-public class User {
+public class User implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private int uid;
     private String uname;

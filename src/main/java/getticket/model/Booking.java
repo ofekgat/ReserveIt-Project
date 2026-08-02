@@ -1,8 +1,11 @@
 package getticket.model;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
-public class Booking {
+public class Booking implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private int bookingId;
     private int uid;

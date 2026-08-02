@@ -1,6 +1,10 @@
 package getticket.model;
 
-public class Location {
+import java.io.Serializable;
+
+public class Location implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private int locationId;
     private String city;
