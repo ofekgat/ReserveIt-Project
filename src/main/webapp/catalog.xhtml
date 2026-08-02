@@ -16,9 +16,7 @@
             <h:inputText value="#{catalogBean.categoryFilter}" title="Category" />
             <h:commandButton value="Filter by category" action="#{catalogBean.searchByCategory}" />
 
-            <h:inputText value="#{catalogBean.dateFilter}" title="yyyy-mm-dd">
-                <f:convertDateTime type="localDate" pattern="yyyy-MM-dd" />
-            </h:inputText>
+            <h:inputText value="#{catalogBean.dateFilterText}" title="yyyy-mm-dd" />
             <h:commandButton value="Filter by date" action="#{catalogBean.searchByDate}" />
 
             <h:commandButton value="Show all" action="#{catalogBean.loadAllShows}" />

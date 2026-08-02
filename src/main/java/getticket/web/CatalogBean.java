@@ -17,6 +17,9 @@ import javax.faces.context.FacesContext;
 import java.io.Serializable;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -36,6 +39,11 @@ public class CatalogBean implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    // JSF 2.2's built-in converters predate java.time, so dates are parsed/formatted
+    // by hand here instead of via <f:convertDateTime type="localDate/localDateTime">.
+    private static final DateTimeFormatter DATE_INPUT_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final DateTimeFormatter DISPLAY_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
     private final ShowDao showDao = new ShowDaoImpl();
     private final EventInstanceDao eventInstanceDao = new EventInstanceDaoImpl();
     private final VenueDao venueDao = new VenueDaoImpl();
@@ -44,7 +52,7 @@ public class CatalogBean implements Serializable {
     // Search form fields (catalog.xhtml).
     private String categoryFilter;
     private String nameFilter;
-    private LocalDate dateFilter;
+    private String dateFilterText;
     private List<Show> shows = Collections.emptyList();
 
     // Show-details view parameter and the data it loads (showDetails.xhtml).
@@ -80,12 +88,24 @@ public class CatalogBean implements Serializable {
     }
 
     public void searchByDate() {
+        LocalDate date;
         try {
-            shows = showDao.getShowsByDate(dateFilter);
+            date = LocalDate.parse(dateFilterText, DATE_INPUT_FORMAT);
+        } catch (DateTimeParseException | NullPointerException e) {
+            addErrorMessage("Enter a date as yyyy-mm-dd.");
+            return;
+        }
+        try {
+            shows = showDao.getShowsByDate(date);
         } catch (SQLException e) {
             shows = new ArrayList<>();
             addErrorMessage("Search failed, please try again.");
         }
+    }
+
+    /** Formats an EventInstance's start time for display; used since JSF 2.2 has no java.time converter. */
+    public String formatDateTime(LocalDateTime dateTime) {
+        return dateTime == null ? "" : dateTime.format(DISPLAY_FORMAT);
     }
 
     /** Bound to showDetails.xhtml's f:viewAction; loads the show named by the sid view param. */
@@ -139,12 +159,12 @@ public class CatalogBean implements Serializable {
         this.nameFilter = nameFilter;
     }
 
-    public LocalDate getDateFilter() {
-        return dateFilter;
+    public String getDateFilterText() {
+        return dateFilterText;
     }
 
-    public void setDateFilter(LocalDate dateFilter) {
-        this.dateFilter = dateFilter;
+    public void setDateFilterText(String dateFilterText) {
+        this.dateFilterText = dateFilterText;
     }
 
     public List<Show> getShows() {

@@ -23,9 +23,7 @@
                 <ui:repeat value="#{catalogBean.instancesForSelectedShow}" var="instance">
                     <li>
                         <span>
-                            <h:outputText value="#{instance.startTime}">
-                                <f:convertDateTime type="localDateTime" pattern="dd/MM/yyyy HH:mm" />
-                            </h:outputText>
+                            #{catalogBean.formatDateTime(instance.startTime)}
                             &#160;&#8211;&#160;#{catalogBean.venueNameFor(instance.vid)}
                             &#160;&#8211;&#160;<h:outputText value="#{instance.ticketPrice}">
                                 <f:convertNumber type="currency" currencySymbol="$" />

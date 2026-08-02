@@ -25,7 +25,7 @@
         <dependency>
             <groupId>org.glassfish</groupId>
             <artifactId>javax.faces</artifactId>
-            <version>2.3.9</version>
+            <version>2.2.20</version>
         </dependency>
         <!-- Supplied by Tomcat itself at runtime; needed here only to compile against. -->
         <dependency>

@@ -34,24 +34,36 @@ public final class PasswordUtil {
         return ITERATIONS + ":" + encode(salt) + ":" + encode(hash);
     }
 
-    /** Checks a plaintext password (login attempt) against a hash produced by hash(). */
+    /**
+     * Checks a plaintext password (login attempt) against a hash produced by hash().
+     *
+     * A malformed storedHash (wrong format, corrupt data, a placeholder left by
+     * seed data, etc.) is treated as "does not match" rather than propagated as
+     * an exception — a login attempt is user input territory, and callers should
+     * never have to guard this call against a crash.
+     */
     public static boolean verify(String plainPassword, String storedHash) {
-        String[] parts = storedHash.split(":");
-        if (parts.length != 3) {
-            throw new IllegalArgumentException("Stored hash is not in the expected 'iterations:salt:hash' format");
+        try {
+            String[] parts = storedHash.split(":");
+            if (parts.length != 3) {
+                return false;
+            }
+
+            int iterations = Integer.parseInt(parts[0]);
+            byte[] salt = decode(parts[1]);
+            byte[] expectedHash = decode(parts[2]);
+
+            byte[] actualHash = pbkdf2(plainPassword.toCharArray(), salt, iterations, expectedHash.length * 8);
+
+            // A plain == or Arrays.equals() would return faster for an
+            // early mismatched byte than a full match — an attacker who
+            // can measure response time could exploit that. Comparing
+            // every byte regardless closes that side channel.
+            return constantTimeEquals(expectedHash, actualHash);
+        } catch (RuntimeException e) {
+            // NumberFormatException, IllegalArgumentException (bad Base64), etc.
+            return false;
         }
-
-        int iterations = Integer.parseInt(parts[0]);
-        byte[] salt = decode(parts[1]);
-        byte[] expectedHash = decode(parts[2]);
-
-        byte[] actualHash = pbkdf2(plainPassword.toCharArray(), salt, iterations, expectedHash.length * 8);
-
-        // A plain == or Arrays.equals() would return faster for an
-        // early mismatched byte than a full match — an attacker who
-        // can measure response time could exploit that. Comparing
-        // every byte regardless closes that side channel.
-        return constantTimeEquals(expectedHash, actualHash);
     }
 
     private static byte[] generateSalt() {
