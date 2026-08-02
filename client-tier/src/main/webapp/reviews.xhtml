@@ -1,0 +1,62 @@
+<ui:composition template="/WEB-INF/template.xhtml"
+                 xmlns="http://www.w3.org/1999/xhtml"
+                 xmlns:h="http://xmlns.jcp.org/jsf/html"
+                 xmlns:f="http://xmlns.jcp.org/jsf/core"
+                 xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                 xmlns:fn="http://xmlns.jcp.org/jsp/jstl/functions">
+    <ui:define name="title">#{reviewBean.show.sname} reviews - GetTicket</ui:define>
+    <ui:define name="content">
+        <f:metadata>
+            <f:viewParam name="sid" value="#{reviewBean.sid}" required="true" />
+            <f:viewAction action="#{reviewBean.loadReviews}" />
+        </f:metadata>
+
+        <h:panelGroup rendered="#{not empty reviewBean.show}">
+            <h2>#{reviewBean.show.sname}</h2>
+            <p class="rating-summary">
+                <span class="stars">#{reviewBean.starsFor(reviewBean.averageRating)}</span>
+                <h:outputText value="#{reviewBean.averageRating}" rendered="#{reviewBean.averageRating gt 0}">
+                    <f:convertNumber pattern="0.0" />
+                </h:outputText>
+                <h:outputText value=" / 5 (#{fn:length(reviewBean.reviews)} reviews)" rendered="#{reviewBean.averageRating gt 0}" />
+                <h:outputText value="No reviews yet" rendered="#{reviewBean.averageRating eq 0}" />
+            </p>
+            <p><h:link outcome="/showDetails" value="Back to show">
+                <f:param name="sid" value="#{reviewBean.sid}" />
+            </h:link></p>
+
+            <div class="review-list">
+                <ui:repeat value="#{reviewBean.reviews}" var="review">
+                    <div class="review-card">
+                        <div class="review-card-header">
+                            <span class="stars">#{reviewBean.starsFor(review.rating)}</span>
+                            <strong>#{review.uname}</strong>
+                        </div>
+                        <p>#{review.comment}</p>
+                    </div>
+                </ui:repeat>
+            </div>
+
+            <h:form styleClass="card" rendered="#{userSessionBean.loggedIn}">
+                <h3>Leave a review</h3>
+                <h:panelGrid columns="2">
+                    <h:outputLabel for="rating" value="Rating" />
+                    <h:selectOneMenu id="rating" value="#{reviewBean.rating}">
+                        <f:selectItem itemLabel="5 - Excellent" itemValue="5" />
+                        <f:selectItem itemLabel="4 - Good" itemValue="4" />
+                        <f:selectItem itemLabel="3 - Average" itemValue="3" />
+                        <f:selectItem itemLabel="2 - Poor" itemValue="2" />
+                        <f:selectItem itemLabel="1 - Terrible" itemValue="1" />
+                    </h:selectOneMenu>
+
+                    <h:outputLabel for="comment" value="Comment" />
+                    <h:inputTextarea id="comment" value="#{reviewBean.comment}" rows="3" cols="40" />
+                </h:panelGrid>
+                <h:commandButton value="Submit review" action="#{reviewBean.submitReview}" />
+            </h:form>
+            <p rendered="#{!userSessionBean.loggedIn}">
+                <h:link outcome="/login" value="Log in to leave a review" />
+            </p>
+        </h:panelGroup>
+    </ui:define>
+</ui:composition>
