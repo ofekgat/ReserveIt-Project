@@ -1,36 +1,109 @@
 <ui:composition template="/WEB-INF/template.xhtml"
-                 xmlns="http://www.w3.org/1999/xhtml"
-                 xmlns:h="http://xmlns.jcp.org/jsf/html"
-                 xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
-    <ui:define name="title">Log in - GetTicket</ui:define>
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns:pt="http://xmlns.jcp.org/jsf/passthrough">
+    <ui:define name="title">Log in - ReserveIt</ui:define>
     <ui:define name="content">
-        <div class="auth-columns">
-            <h:form styleClass="card">
-                <h2>Log in</h2>
-                <h:panelGrid columns="2">
+        <section class="login-layout">
+            <div class="hero-copy">
+                <span class="eyebrow">LIVE EXPERIENCES, ONE CLICK AWAY</span>
+                <h1>Book unforgettable shows with confidence.</h1>
+                <p>
+                    Browse upcoming performances, choose a showtime, select your seats,
+                    and complete a real database-backed booking through the existing application tier.
+                </p>
+                <div class="hero-badges">
+                    <span>✓ Real availability</span>
+                    <span>✓ Secure account flow</span>
+                    <span>✓ Atomic booking</span>
+                </div>
+            </div>
+
+            <div class="auth-stack">
+                <h:form id="loginForm" styleClass="login-card glass-card">
+                    <div class="ticket-icon">🎫</div>
+                    <span class="eyebrow">WELCOME BACK</span>
+                    <h2>Log in</h2>
+                    <p class="muted">Use your ReserveIt account to continue.</p>
+
                     <h:outputLabel for="uname" value="Username" />
-                    <h:inputText id="uname" value="#{userSessionBean.uname}" required="true" />
+                    <div class="input-wrap">
+                        <span aria-hidden="true">👤</span>
+                        <h:inputText id="uname"
+                                     value="#{userSessionBean.uname}"
+                                     required="true"
+                                     requiredMessage="Username is required."
+                                     pt:placeholder="Enter your username" />
+                    </div>
+                    <h:message for="uname" styleClass="field-error" />
 
                     <h:outputLabel for="password" value="Password" />
-                    <h:inputSecret id="password" value="#{userSessionBean.password}" required="true" />
-                </h:panelGrid>
-                <h:commandButton value="Log in" action="#{userSessionBean.login}" />
-            </h:form>
+                    <div class="input-wrap">
+                        <span aria-hidden="true">🔒</span>
+                        <h:inputSecret id="password"
+                                       value="#{userSessionBean.password}"
+                                       required="true"
+                                       requiredMessage="Password is required."
+                                       pt:placeholder="Enter your password" />
+                    </div>
+                    <h:message for="password" styleClass="field-error" />
 
-            <h:form styleClass="card">
-                <h2>Register</h2>
-                <h:panelGrid columns="2">
-                    <h:outputLabel for="runame" value="Username" />
-                    <h:inputText id="runame" value="#{userSessionBean.uname}" required="true" />
+                    <h:commandButton value="Log in"
+                                     action="#{userSessionBean.login}"
+                                     styleClass="primary-button full" />
+                </h:form>
+
+                <h:form id="registerForm" styleClass="register-card glass-card">
+                    <div class="register-heading">
+                        <div>
+                            <span class="eyebrow">NEW TO RESERVEIT?</span>
+                            <h2>Create an account</h2>
+                        </div>
+                        <span class="register-icon">✨</span>
+                    </div>
+
+                    <div class="register-grid">
+                        <div>
+                            <h:outputLabel for="runame" value="Username" />
+                            <div class="input-wrap">
+                                <h:inputText id="runame"
+                                             value="#{userSessionBean.uname}"
+                                             required="true"
+                                             requiredMessage="Username is required."
+                                             pt:placeholder="Choose a username" />
+                            </div>
+                            <h:message for="runame" styleClass="field-error" />
+                        </div>
+                        <div>
+                            <h:outputLabel for="remail" value="Email" />
+                            <div class="input-wrap">
+                                <h:inputText id="remail"
+                                             value="#{userSessionBean.email}"
+                                             required="true"
+                                             requiredMessage="Email is required."
+                                             pt:type="email"
+                                             pt:placeholder="you@example.com" />
+                            </div>
+                            <h:message for="remail" styleClass="field-error" />
+                        </div>
+                    </div>
 
                     <h:outputLabel for="rpassword" value="Password" />
-                    <h:inputSecret id="rpassword" value="#{userSessionBean.password}" required="true" />
+                    <div class="input-wrap">
+                        <h:inputSecret id="rpassword"
+                                       value="#{userSessionBean.password}"
+                                       required="true"
+                                       requiredMessage="Password is required."
+                                       pt:placeholder="Create a password" />
+                    </div>
+                    <h:message for="rpassword" styleClass="field-error" />
 
-                    <h:outputLabel for="remail" value="Email" />
-                    <h:inputText id="remail" value="#{userSessionBean.email}" required="true" />
-                </h:panelGrid>
-                <h:commandButton value="Register" action="#{userSessionBean.register}" />
-            </h:form>
-        </div>
+                    <h:commandButton value="Create account"
+                                     action="#{userSessionBean.register}"
+                                     styleClass="secondary-button full" />
+                </h:form>
+            </div>
+        </section>
     </ui:define>
 </ui:composition>

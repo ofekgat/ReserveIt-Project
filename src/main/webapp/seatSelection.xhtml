@@ -1,49 +1,129 @@
 <ui:composition template="/WEB-INF/template.xhtml"
-                 xmlns="http://www.w3.org/1999/xhtml"
-                 xmlns:h="http://xmlns.jcp.org/jsf/html"
-                 xmlns:f="http://xmlns.jcp.org/jsf/core"
-                 xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
-    <ui:define name="title">Select seats - GetTicket</ui:define>
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns:pt="http://xmlns.jcp.org/jsf/passthrough">
+    <ui:define name="title">Select seats - ReserveIt</ui:define>
     <ui:define name="content">
-        <h:panelGroup rendered="#{empty checkoutBean.eventInstance}">
-            <p>No showtime selected. Please pick one from a show's page.</p>
+        <h:panelGroup rendered="#{empty checkoutBean.eventInstance}" layout="block" styleClass="empty-state glass-card">
+            <div class="empty-icon">🎫</div>
+            <h2>No showtime selected</h2>
+            <p>Return to the catalog and choose a performance first.</p>
+            <h:link outcome="/catalog" value="Browse shows" styleClass="primary-button inline-action" />
         </h:panelGroup>
 
-        <h:panelGroup rendered="#{not empty checkoutBean.eventInstance}">
-            <h2>#{checkoutBean.venue.vname}</h2>
-            <p>Price per ticket:
-                <h:outputText value="#{checkoutBean.eventInstance.ticketPrice}">
-                    <f:convertNumber type="currency" currencySymbol="$" />
-                </h:outputText>
-            </p>
-
-            <h:form rendered="#{checkoutBean.numberedVenue}">
-                <div class="seat-grid">
-                    <ui:repeat value="#{checkoutBean.availableSeats}" var="seat">
-                        <h:commandButton value="R#{seat.rowNum}-#{seat.seatNum}"
-                                          styleClass="#{checkoutBean.isSeatSelected(seat.seatId) ? 'seat selected' : 'seat'}"
-                                          action="#{checkoutBean.toggleSeat(seat.seatId)}" />
-                    </ui:repeat>
+        <h:panelGroup rendered="#{not empty checkoutBean.eventInstance}" layout="block">
+            <section class="screen-heading compact">
+                <div>
+                    <span class="eyebrow">#{checkoutBean.venue.vname}</span>
+                    <h1>Select your #{checkoutBean.numberedVenue ? 'seats' : 'tickets'}</h1>
+                    <p class="muted">Price per ticket:
+                        <strong class="inline-price">
+                            <h:outputText value="#{checkoutBean.eventInstance.ticketPrice}">
+                                <f:convertNumber type="currency" currencySymbol="$" />
+                            </h:outputText>
+                        </strong>
+                    </p>
                 </div>
-                <h:panelGroup rendered="#{empty checkoutBean.availableSeats}">
-                    <p>No seats currently available.</p>
+                <h:link outcome="/catalog" value="Change show" styleClass="ghost-button compact-button" />
+            </section>
+
+            <div class="steps">
+                <div class="step done"><span>✓</span><small>Showtime</small></div>
+                <div class="step active"><span>2</span><small>Seats</small></div>
+                <div class="step"><span>3</span><small>Confirmation</small></div>
+            </div>
+
+            <h:form id="numberedForm" rendered="#{checkoutBean.numberedVenue}" styleClass="hall-card glass-card">
+                <div class="stage-wrap">
+                    <div class="stage-glow"></div>
+                    <div class="stage">STAGE</div>
+                </div>
+
+                <div class="legend">
+                    <span><i class="legend-seat regular"></i>Available</span>
+                    <span><i class="legend-seat selected"></i>Selected</span>
+                </div>
+
+                <h:panelGroup id="seatMap" layout="block" styleClass="seat-map">
+                    <ui:repeat value="#{checkoutBean.availableSeats}" var="seat">
+                        <h:commandButton value="#{seat.rowNum}-#{seat.seatNum}"
+                                         title="Row #{seat.rowNum}, seat #{seat.seatNum}"
+                                         action="#{checkoutBean.toggleSeat(seat.seatId)}"
+                                         styleClass="seat #{checkoutBean.isSeatSelected(seat.seatId) ? 'selected' : 'regular'}">
+                            <f:ajax execute="@this" render="seatMap selectionSummary" />
+                        </h:commandButton>
+                    </ui:repeat>
+                </h:panelGroup>
+
+                <h:panelGroup rendered="#{empty checkoutBean.availableSeats}" layout="block" styleClass="empty-state compact-empty">
+                    <p>No numbered seats are currently available.</p>
+                </h:panelGroup>
+
+                <h:panelGroup id="selectionSummary" layout="block" styleClass="selection-summary">
+                    <div>
+                        <span class="summary-label">Selected seats</span>
+                        <div class="seat-tags">
+                            <ui:repeat value="#{checkoutBean.selectedSeatIds}" var="seatId">
+                                <span class="seat-tag">Seat ID #{seatId}</span>
+                            </ui:repeat>
+                            <h:panelGroup rendered="#{empty checkoutBean.selectedSeatIds}">
+                                <span class="empty-tag">Choose at least one seat</span>
+                            </h:panelGroup>
+                        </div>
+                    </div>
+                    <div class="price-box">
+                        <span>Total</span>
+                        <strong>
+                            <h:outputText value="#{checkoutBean.totalPrice}">
+                                <f:convertNumber type="currency" currencySymbol="$" />
+                            </h:outputText>
+                        </strong>
+                    </div>
+                    <h:commandButton value="Confirm booking"
+                                     action="#{checkoutBean.checkout}"
+                                     disabled="#{empty checkoutBean.selectedSeatIds}"
+                                     styleClass="primary-button checkout-button" />
                 </h:panelGroup>
             </h:form>
 
-            <h:form rendered="#{!checkoutBean.numberedVenue}">
-                <h:outputLabel for="qty" value="Number of tickets" />
-                <h:inputText id="qty" value="#{checkoutBean.ticketQuantity}" size="3" />
-                <h:commandButton value="Update total" />
-            </h:form>
+            <h:form id="generalForm" rendered="#{!checkoutBean.numberedVenue}" styleClass="general-card glass-card">
+                <div class="general-icon">🎟</div>
+                <span class="eyebrow">GENERAL ADMISSION</span>
+                <h2>How many tickets?</h2>
+                <p class="muted">This venue does not use numbered seating.</p>
 
-            <p class="total-price">Total:
-                <h:outputText value="#{checkoutBean.totalPrice}">
-                    <f:convertNumber type="currency" currencySymbol="$" />
-                </h:outputText>
-            </p>
+                <div class="quantity-row">
+                    <h:outputLabel for="qty" value="Ticket quantity" />
+                    <div class="input-wrap quantity-input">
+                        <h:inputText id="qty"
+                                     value="#{checkoutBean.ticketQuantity}"
+                                     required="true"
+                                     pt:type="number"
+                                     pt:min="1">
+                            <f:validateLongRange minimum="1" />
+                        </h:inputText>
+                    </div>
+                    <h:commandButton value="Update total" styleClass="secondary-button">
+                        <f:ajax execute="qty" render="generalSummary" />
+                    </h:commandButton>
+                </div>
+                <h:message for="qty" styleClass="field-error" />
 
-            <h:form>
-                <h:commandButton value="Confirm booking" action="#{checkoutBean.checkout}" />
+                <h:panelGroup id="generalSummary" layout="block" styleClass="general-summary">
+                    <span>Total</span>
+                    <strong>
+                        <h:outputText value="#{checkoutBean.totalPrice}">
+                            <f:convertNumber type="currency" currencySymbol="$" />
+                        </h:outputText>
+                    </strong>
+                </h:panelGroup>
+
+                <h:commandButton value="Confirm booking"
+                                 action="#{checkoutBean.checkout}"
+                                 disabled="#{checkoutBean.ticketQuantity lt 1}"
+                                 styleClass="primary-button full" />
             </h:form>
         </h:panelGroup>
     </ui:define>

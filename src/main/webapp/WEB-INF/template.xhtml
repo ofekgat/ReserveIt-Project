@@ -3,27 +3,51 @@
       xmlns:h="http://xmlns.jcp.org/jsf/html"
       xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
 <h:head>
-    <title><ui:insert name="title">GetTicket</ui:insert></title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><ui:insert name="title">ReserveIt</ui:insert></title>
     <h:outputStylesheet library="css" name="style.css" />
 </h:head>
 <h:body>
-    <div class="topbar">
-        <h:link outcome="/catalog" value="GetTicket" styleClass="brand" />
-        <div class="nav-right">
-            <h:panelGroup rendered="#{userSessionBean.loggedIn}">
-                <span>Hi, #{userSessionBean.currentUser.uname}</span>
-                <h:form>
-                    <h:commandLink value="Log out" action="#{userSessionBean.logout}" />
-                </h:form>
-            </h:panelGroup>
-            <h:panelGroup rendered="#{!userSessionBean.loggedIn}">
-                <h:link outcome="/login" value="Log in" />
-            </h:panelGroup>
-        </div>
-    </div>
-    <h:messages globalOnly="false" layout="list" styleClass="messages" />
-    <div class="content">
-        <ui:insert name="content" />
+    <div class="bg-lights"></div>
+    <div class="curtain curtain-left"></div>
+    <div class="curtain curtain-right"></div>
+
+    <div class="app-shell">
+        <header class="site-header glass-card">
+            <h:link outcome="/catalog" styleClass="brand-link">
+                <span class="brand-mark">🎟</span>
+                <span class="brand-copy">
+                    <strong>ReserveIt</strong>
+                    <small>Your seat. Your show. Your night.</small>
+                </span>
+            </h:link>
+
+            <nav class="site-nav" aria-label="Main navigation">
+                <h:link outcome="/catalog" value="Shows" styleClass="nav-link" />
+                <h:panelGroup rendered="#{userSessionBean.loggedIn}" layout="block" styleClass="account-area">
+                    <span class="welcome-text">Hi, #{userSessionBean.currentUser.uname}</span>
+                    <h:form styleClass="inline-form">
+                        <h:commandButton value="Log out"
+                                         action="#{userSessionBean.logout}"
+                                         styleClass="ghost-button compact-button" />
+                    </h:form>
+                </h:panelGroup>
+                <h:panelGroup rendered="#{!userSessionBean.loggedIn}">
+                    <h:link outcome="/login" value="Log in" styleClass="secondary-button compact-button" />
+                </h:panelGroup>
+            </nav>
+        </header>
+
+        <h:messages globalOnly="false" layout="list" styleClass="messages glass-card" />
+
+        <main class="page-content">
+            <ui:insert name="content" />
+        </main>
+
+        <footer>
+            ReserveIt · JSF client tier connected to the application tier
+        </footer>
     </div>
 </h:body>
 </html>
