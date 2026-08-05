@@ -52,7 +52,7 @@
                                          title="Row #{seat.rowNum}, seat #{seat.seatNum}"
                                          action="#{checkoutBean.toggleSeat(seat.seatId)}"
                                          styleClass="seat #{checkoutBean.isSeatSelected(seat.seatId) ? 'selected' : 'regular'}">
-                            <f:ajax execute="@this" render="seatMap selectionSummary" />
+                            <f:ajax execute="@this" render=":numberedForm:seatMap :numberedForm:selectionSummary" />
                         </h:commandButton>
                     </ui:repeat>
                 </h:panelGroup>
@@ -106,7 +106,7 @@
                         </h:inputText>
                     </div>
                     <h:commandButton value="Update total" styleClass="secondary-button">
-                        <f:ajax execute="qty" render="generalSummary" />
+                        <f:ajax execute="qty" render=":generalForm:generalSummary" />
                     </h:commandButton>
                 </div>
                 <h:message for="qty" styleClass="field-error" />

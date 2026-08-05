@@ -2,6 +2,7 @@ package getticket.dao.impl;
 
 import getticket.util.ConnectionPool;
 
+import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.SQLException;
 
@@ -13,8 +14,14 @@ import java.sql.SQLException;
  * The second form is written once here — borrow a connection, run the
  * first form, release it no matter what — instead of being repeated in
  * every method of every DAO.
+ *
+ * Implements Serializable (with no state to actually serialize) because
+ * JSF backing beans hold DAO instances as fields, and those beans live in
+ * the HTTP session — which Tomcat may try to persist to disk.
  */
-abstract class BaseDao {
+abstract class BaseDao implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     /** A unit of DAO work that runs on a given connection and returns a value. */
     @FunctionalInterface
