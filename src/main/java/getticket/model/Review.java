@@ -22,45 +22,20 @@ public class Review implements Serializable {
         this.comment = comment;
     }
 
-    public int getReviewId() {
-        return reviewId;
-    }
+    public int getReviewId() { return reviewId; }
+    public void setReviewId(int reviewId) { this.reviewId = reviewId; }
 
-    public void setReviewId(int reviewId) {
-        this.reviewId = reviewId;
-    }
+    public int getSid() { return sid; }
+    public void setSid(int sid) { this.sid = sid; }
 
-    public int getSid() {
-        return sid;
-    }
+    public int getUid() { return uid; }
+    public void setUid(int uid) { this.uid = uid; }
 
-    public void setSid(int sid) {
-        this.sid = sid;
-    }
+    public int getRating() { return rating; }
+    public void setRating(int rating) { this.rating = rating; }
 
-    public int getUid() {
-        return uid;
-    }
-
-    public void setUid(int uid) {
-        this.uid = uid;
-    }
-
-    public int getRating() {
-        return rating;
-    }
-
-    public void setRating(int rating) {
-        this.rating = rating;
-    }
-
-    public String getComment() {
-        return comment;
-    }
-
-    public void setComment(String comment) {
-        this.comment = comment;
-    }
+    public String getComment() { return comment; }
+    public void setComment(String comment) { this.comment = comment; }
 
     @Override
     public String toString() {

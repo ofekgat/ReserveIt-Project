@@ -28,61 +28,26 @@ public class EventInstance implements Serializable {
         this.eventStatus = eventStatus;
     }
 
-    public int getInstanceId() {
-        return instanceId;
-    }
+    public int getInstanceId() { return instanceId; }
+    public void setInstanceId(int instanceId) { this.instanceId = instanceId; }
 
-    public void setInstanceId(int instanceId) {
-        this.instanceId = instanceId;
-    }
+    public int getSid() { return sid; }
+    public void setSid(int sid) { this.sid = sid; }
 
-    public int getSid() {
-        return sid;
-    }
+    public int getVid() { return vid; }
+    public void setVid(int vid) { this.vid = vid; }
 
-    public void setSid(int sid) {
-        this.sid = sid;
-    }
+    public LocalDateTime getStartTime() { return startTime; }
+    public void setStartTime(LocalDateTime startTime) { this.startTime = startTime; }
 
-    public int getVid() {
-        return vid;
-    }
+    public double getTicketPrice() { return ticketPrice; }
+    public void setTicketPrice(double ticketPrice) { this.ticketPrice = ticketPrice; }
 
-    public void setVid(int vid) {
-        this.vid = vid;
-    }
+    public int getAvailableTickets() { return availableTickets; }
+    public void setAvailableTickets(int availableTickets) { this.availableTickets = availableTickets; }
 
-    public LocalDateTime getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(LocalDateTime startTime) {
-        this.startTime = startTime;
-    }
-
-    public double getTicketPrice() {
-        return ticketPrice;
-    }
-
-    public void setTicketPrice(double ticketPrice) {
-        this.ticketPrice = ticketPrice;
-    }
-
-    public int getAvailableTickets() {
-        return availableTickets;
-    }
-
-    public void setAvailableTickets(int availableTickets) {
-        this.availableTickets = availableTickets;
-    }
-
-    public String getEventStatus() {
-        return eventStatus;
-    }
-
-    public void setEventStatus(String eventStatus) {
-        this.eventStatus = eventStatus;
-    }
+    public String getEventStatus() { return eventStatus; }
+    public void setEventStatus(String eventStatus) { this.eventStatus = eventStatus; }
 
     @Override
     public String toString() {

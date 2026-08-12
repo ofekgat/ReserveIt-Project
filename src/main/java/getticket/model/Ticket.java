@@ -20,37 +20,17 @@ public class Ticket implements Serializable {
         this.seatId = seatId;
     }
 
-    public int getTicketId() {
-        return ticketId;
-    }
+    public int getTicketId() { return ticketId; }
+    public void setTicketId(int ticketId) { this.ticketId = ticketId; }
 
-    public void setTicketId(int ticketId) {
-        this.ticketId = ticketId;
-    }
+    public int getBookingId() { return bookingId; }
+    public void setBookingId(int bookingId) { this.bookingId = bookingId; }
 
-    public int getBookingId() {
-        return bookingId;
-    }
+    public int getInstanceId() { return instanceId; }
+    public void setInstanceId(int instanceId) { this.instanceId = instanceId; }
 
-    public void setBookingId(int bookingId) {
-        this.bookingId = bookingId;
-    }
-
-    public int getInstanceId() {
-        return instanceId;
-    }
-
-    public void setInstanceId(int instanceId) {
-        this.instanceId = instanceId;
-    }
-
-    public Integer getSeatId() {
-        return seatId;
-    }
-
-    public void setSeatId(Integer seatId) {
-        this.seatId = seatId;
-    }
+    public Integer getSeatId() { return seatId; }
+    public void setSeatId(Integer seatId) { this.seatId = seatId; }
 
     @Override
     public String toString() {

@@ -10,10 +10,8 @@ import getticket.model.EventInstance;
 import getticket.model.Show;
 import getticket.model.Venue;
 
-import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ViewScoped;
-import javax.faces.context.FacesContext;
 import java.io.Serializable;
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -65,7 +63,7 @@ public class CatalogBean implements Serializable {
             shows = showDao.getAll();
         } catch (SQLException e) {
             shows = new ArrayList<>();
-            addErrorMessage("Could not load shows, please try again.");
+            FacesMessages.addError("Error", "Could not load shows, please try again.");
         }
     }
 
@@ -74,7 +72,7 @@ public class CatalogBean implements Serializable {
             shows = showDao.getShowsByCategory(categoryFilter);
         } catch (SQLException e) {
             shows = new ArrayList<>();
-            addErrorMessage("Search failed, please try again.");
+            FacesMessages.addError("Error", "Search failed, please try again.");
         }
     }
 
@@ -83,7 +81,7 @@ public class CatalogBean implements Serializable {
             shows = showDao.searchByName(nameFilter);
         } catch (SQLException e) {
             shows = new ArrayList<>();
-            addErrorMessage("Search failed, please try again.");
+            FacesMessages.addError("Error", "Search failed, please try again.");
         }
     }
 
@@ -92,14 +90,14 @@ public class CatalogBean implements Serializable {
         try {
             date = LocalDate.parse(dateFilterText, DATE_INPUT_FORMAT);
         } catch (DateTimeParseException | NullPointerException e) {
-            addErrorMessage("Enter a date as yyyy-mm-dd.");
+            FacesMessages.addError("Error", "Enter a date as yyyy-mm-dd.");
             return;
         }
         try {
             shows = showDao.getShowsByDate(date);
         } catch (SQLException e) {
             shows = new ArrayList<>();
-            addErrorMessage("Search failed, please try again.");
+            FacesMessages.addError("Error", "Search failed, please try again.");
         }
     }
 
@@ -113,13 +111,13 @@ public class CatalogBean implements Serializable {
         try {
             selectedShow = showDao.getById(sid);
             if (selectedShow == null) {
-                addErrorMessage("Show not found.");
+                FacesMessages.addError("Error", "Show not found.");
                 return "/catalog?faces-redirect=true";
             }
             instancesForSelectedShow = eventInstanceDao.getInstancesByShow(sid);
             return null;
         } catch (SQLException e) {
-            addErrorMessage("Could not load showtimes, please try again.");
+            FacesMessages.addError("Error", "Could not load showtimes, please try again.");
             return "/catalog?faces-redirect=true";
         }
     }
@@ -136,11 +134,6 @@ public class CatalogBean implements Serializable {
         } catch (SQLException e) {
             return "Venue #" + vid;
         }
-    }
-
-    private void addErrorMessage(String detail) {
-        FacesContext.getCurrentInstance()
-                .addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", detail));
     }
 
     public String getCategoryFilter() {

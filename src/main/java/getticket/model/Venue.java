@@ -22,45 +22,20 @@ public class Venue implements Serializable {
         this.vcapacity = vcapacity;
     }
 
-    public int getVid() {
-        return vid;
-    }
+    public int getVid() { return vid; }
+    public void setVid(int vid) { this.vid = vid; }
 
-    public void setVid(int vid) {
-        this.vid = vid;
-    }
+    public int getLocationId() { return locationId; }
+    public void setLocationId(int locationId) { this.locationId = locationId; }
 
-    public int getLocationId() {
-        return locationId;
-    }
+    public String getVname() { return vname; }
+    public void setVname(String vname) { this.vname = vname; }
 
-    public void setLocationId(int locationId) {
-        this.locationId = locationId;
-    }
+    public boolean isNumbered() { return isNumbered; }
+    public void setNumbered(boolean numbered) { isNumbered = numbered; }
 
-    public String getVname() {
-        return vname;
-    }
-
-    public void setVname(String vname) {
-        this.vname = vname;
-    }
-
-    public boolean isNumbered() {
-        return isNumbered;
-    }
-
-    public void setNumbered(boolean numbered) {
-        isNumbered = numbered;
-    }
-
-    public int getVcapacity() {
-        return vcapacity;
-    }
-
-    public void setVcapacity(int vcapacity) {
-        this.vcapacity = vcapacity;
-    }
+    public int getVcapacity() { return vcapacity; }
+    public void setVcapacity(int vcapacity) { this.vcapacity = vcapacity; }
 
     @Override
     public String toString() {
