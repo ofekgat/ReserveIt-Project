@@ -16,6 +16,7 @@ import getticket.model.Ticket;
 import getticket.model.Venue;
 import getticket.util.ConnectionPool;
 
+import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
@@ -27,9 +28,13 @@ import java.util.List;
  * Event_Instance row up front (SELECT ... FOR UPDATE) serializes any other
  * checkout attempt for the same instance, which is what prevents two users
  * from being sold the same seat (double booking) under concurrent load.
+ *
+ * Implements Serializable (no real state to serialize) because CheckoutBean
+ * holds this as a field and lives in the HTTP session.
  */
-public class BookingService {
+public class BookingService implements Serializable {
 
+    private static final long serialVersionUID = 1L;
     private static final String BOOKING_STATUS_CONFIRMED = "CONFIRMED";
 
     private final BookingDao bookingDao;

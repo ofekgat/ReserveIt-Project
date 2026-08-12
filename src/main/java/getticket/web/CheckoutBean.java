@@ -17,11 +17,9 @@ import getticket.service.BookingService;
 import getticket.service.InsufficientTicketsException;
 import getticket.service.SeatUnavailableException;
 
-import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.SessionScoped;
-import javax.faces.context.FacesContext;
 import java.io.Serializable;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -71,7 +69,7 @@ public class CheckoutBean implements Serializable {
         try {
             eventInstance = eventInstanceDao.getById(instanceId);
             if (eventInstance == null) {
-                addErrorMessage("This showtime no longer exists.");
+                FacesMessages.addError("Error", "This showtime no longer exists.");
                 return null;
             }
             venue = venueDao.getById(eventInstance.getVid());
@@ -80,7 +78,7 @@ public class CheckoutBean implements Serializable {
             loadSeatMap();
             return "/seatSelection?faces-redirect=true";
         } catch (SQLException e) {
-            addErrorMessage("Could not load seats, please try again.");
+            FacesMessages.addError("Error", "Could not load seats, please try again.");
             return null;
         }
     }
@@ -165,11 +163,11 @@ public class CheckoutBean implements Serializable {
 
     public String checkout() {
         if (userSessionBean == null || !userSessionBean.isLoggedIn()) {
-            addErrorMessage("Please log in before checking out.");
+            FacesMessages.addError("Error", "Please log in before checking out.");
             return "/login?faces-redirect=true";
         }
         if (eventInstance == null) {
-            addErrorMessage("Please select a showtime first.");
+            FacesMessages.addError("Error", "Please select a showtime first.");
             return null;
         }
 
@@ -177,7 +175,7 @@ public class CheckoutBean implements Serializable {
         try {
             if (isNumberedVenue()) {
                 if (selectedSeatIds.isEmpty()) {
-                    addErrorMessage("Please select at least one seat.");
+                    FacesMessages.addError("Error", "Please select at least one seat.");
                     return null;
                 }
                 lastBooking = bookingService.checkout(uid, eventInstance.getInstanceId(), selectedSeatIds);
@@ -190,13 +188,13 @@ public class CheckoutBean implements Serializable {
         } catch (SeatUnavailableException e) {
             selectedSeatIds.removeAll(e.getUnavailableSeatIds());
             refreshSeatMap();
-            addErrorMessage("Some selected seats were just booked by someone else. Please choose again.");
+            FacesMessages.addError("Error", "Some selected seats were just booked by someone else. Please choose again.");
             return null;
         } catch (InsufficientTicketsException e) {
-            addErrorMessage("Only " + e.getAvailable() + " tickets are left for this showtime.");
+            FacesMessages.addError("Error", "Only " + e.getAvailable() + " tickets are left for this showtime.");
             return null;
         } catch (SQLException e) {
-            addErrorMessage("Booking failed, please try again.");
+            FacesMessages.addError("Error", "Booking failed, please try again.");
             return null;
         }
     }
@@ -208,11 +206,6 @@ public class CheckoutBean implements Serializable {
             seatRows = Collections.emptyList();
             takenSeatIds = Collections.emptySet();
         }
-    }
-
-    private void addErrorMessage(String detail) {
-        FacesContext.getCurrentInstance()
-                .addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", detail));
     }
 
     public void setUserSessionBean(UserSessionBean userSessionBean) {

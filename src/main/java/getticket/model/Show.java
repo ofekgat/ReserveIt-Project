@@ -22,45 +22,20 @@ public class Show implements Serializable {
         this.imageUrl = imageUrl;
     }
 
-    public int getSid() {
-        return sid;
-    }
+    public int getSid() { return sid; }
+    public void setSid(int sid) { this.sid = sid; }
 
-    public void setSid(int sid) {
-        this.sid = sid;
-    }
+    public String getSname() { return sname; }
+    public void setSname(String sname) { this.sname = sname; }
 
-    public String getSname() {
-        return sname;
-    }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 
-    public void setSname(String sname) {
-        this.sname = sname;
-    }
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getCategory() {
-        return category;
-    }
-
-    public void setCategory(String category) {
-        this.category = category;
-    }
-
-    public String getImageUrl() {
-        return imageUrl;
-    }
-
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
-    }
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 
     @Override
     public String toString() {

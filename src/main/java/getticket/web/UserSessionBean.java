@@ -5,7 +5,6 @@ import getticket.dao.impl.UserDaoImpl;
 import getticket.model.User;
 import getticket.util.PasswordUtil;
 
-import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.SessionScoped;
 import javax.faces.context.FacesContext;
@@ -42,7 +41,7 @@ public class UserSessionBean implements Serializable {
         try {
             User user = userDao.getByUsername(uname);
             if (user == null || !PasswordUtil.verify(password, user.getPassword())) {
-                addMessage(FacesMessage.SEVERITY_ERROR, "Login failed", "Invalid username or password.");
+                FacesMessages.addError("Login failed", "Invalid username or password.");
                 return null;
             }
             this.currentUser = user;
@@ -50,7 +49,7 @@ public class UserSessionBean implements Serializable {
             clearForm();
             return "/catalog?faces-redirect=true";
         } catch (SQLException e) {
-            addMessage(FacesMessage.SEVERITY_ERROR, "Login failed", "Unexpected error, please try again.");
+            FacesMessages.addError("Login failed", "Unexpected error, please try again.");
             return null;
         }
     }
@@ -58,7 +57,7 @@ public class UserSessionBean implements Serializable {
     public String register() {
         try {
             if (userDao.getByUsername(uname) != null) {
-                addMessage(FacesMessage.SEVERITY_ERROR, "Registration failed", "Username is already taken.");
+                FacesMessages.addError("Registration failed", "Username is already taken.");
                 return null;
             }
             User user = new User(uname, PasswordUtil.hash(password), email, DEFAULT_ROLE);
@@ -68,7 +67,7 @@ public class UserSessionBean implements Serializable {
             clearForm();
             return "/catalog?faces-redirect=true";
         } catch (SQLException e) {
-            addMessage(FacesMessage.SEVERITY_ERROR, "Registration failed", "Unexpected error, please try again.");
+            FacesMessages.addError("Registration failed", "Unexpected error, please try again.");
             return null;
         }
     }
@@ -95,10 +94,6 @@ public class UserSessionBean implements Serializable {
 
     private void clearForm() {
         password = null;
-    }
-
-    private void addMessage(FacesMessage.Severity severity, String summary, String detail) {
-        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(severity, summary, detail));
     }
 
     public String getUname() {

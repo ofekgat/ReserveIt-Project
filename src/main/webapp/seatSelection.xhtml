@@ -57,10 +57,10 @@
                                                  action="#{checkoutBean.toggleSeat(seat.seatId)}"
                                                  disabled="#{checkoutBean.isSeatTaken(seat.seatId)}"
                                                  styleClass="seat #{checkoutBean.isSeatTaken(seat.seatId) ? 'occupied' : (checkoutBean.isSeatSelected(seat.seatId) ? 'selected' : 'regular')}">
-                                    <!-- render="@form", not the two panel ids: this button sits inside
-                                         ui:repeat (a naming container), from which those ids don't
-                                         resolve — the request would succeed but update nothing. -->
-                                    <f:ajax execute="@this" render="@form" />
+                                    <!-- Absolute ids: this button sits inside nested ui:repeats (naming
+                                         containers), from which the bare ids would not resolve — the
+                                         request would succeed but update nothing. -->
+                                    <f:ajax execute="@this" render=":numberedForm:seatMap :numberedForm:selectionSummary" />
                                 </h:commandButton>
                             </ui:repeat>
                             <span class="row-label">#{seatRow.rowNum}</span>
@@ -117,7 +117,7 @@
                         </h:inputText>
                     </div>
                     <h:commandButton value="Update total" styleClass="secondary-button">
-                        <f:ajax execute="qty" render="generalSummary" />
+                        <f:ajax execute="qty" render=":generalForm:generalSummary" />
                     </h:commandButton>
                 </div>
                 <h:message for="qty" styleClass="field-error" />
