@@ -42,6 +42,7 @@ public class CatalogBean implements Serializable {
     // JSF 2.2's built-in converters predate java.time, so dates are parsed/formatted
     // by hand here instead of via <f:convertDateTime type="localDate/localDateTime">.
     private static final DateTimeFormatter DATE_INPUT_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final DateTimeFormatter DATE_DISPLAY_FORMAT = DateTimeFormatter.ofPattern("EEE dd/MM/yyyy");
     private static final DateTimeFormatter DISPLAY_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     private final ShowDao showDao = new ShowDaoImpl();
@@ -49,58 +50,85 @@ public class CatalogBean implements Serializable {
     private final VenueDao venueDao = new VenueDaoImpl();
     private final Map<Integer, String> venueNameCache = new HashMap<>();
 
-    // Search form fields (catalog.xhtml).
+    // Search form fields (catalog.xhtml). The two dropdowns hold "" for "any".
     private String categoryFilter;
     private String nameFilter;
     private String dateFilterText;
     private List<Show> shows = Collections.emptyList();
+
+    // Dropdown options, read from what is actually in the catalog.
+    private List<String> categories = Collections.emptyList();
+    private List<LocalDate> scheduledDates = Collections.emptyList();
 
     // Show-details view parameter and the data it loads (showDetails.xhtml).
     private int sid;
     private Show selectedShow;
     private List<EventInstance> instancesForSelectedShow = Collections.emptyList();
 
+    /** Bound to catalog.xhtml's f:viewAction: fills the dropdowns and shows the whole catalog. */
     public void loadAllShows() {
+        loadFilterOptions();
+        applyFilters();
+    }
+
+    private void loadFilterOptions() {
         try {
-            shows = showDao.getAll();
+            categories = showDao.getAllCategories();
+            scheduledDates = eventInstanceDao.getScheduledDates();
         } catch (SQLException e) {
-            shows = new ArrayList<>();
-            addErrorMessage("Could not load shows, please try again.");
+            categories = new ArrayList<>();
+            scheduledDates = new ArrayList<>();
+            addErrorMessage("Could not load the filter options.");
         }
     }
 
-    public void searchByCategory() {
+    /**
+     * Runs the catalog search with all three filters applied together, so
+     * narrowing by category and by date compose instead of replacing each other.
+     */
+    public void applyFilters() {
         try {
-            shows = showDao.getShowsByCategory(categoryFilter);
+            shows = showDao.search(nameFilter, categoryFilter, parseDateFilter());
         } catch (SQLException e) {
             shows = new ArrayList<>();
             addErrorMessage("Search failed, please try again.");
         }
     }
 
-    public void searchByName() {
+    /** Resets every filter and shows the full catalog again. */
+    public void clearFilters() {
+        nameFilter = null;
+        categoryFilter = null;
+        dateFilterText = null;
+        applyFilters();
+    }
+
+    /** The date dropdown submits "yyyy-MM-dd", or "" for "any date". */
+    private LocalDate parseDateFilter() {
+        if (dateFilterText == null || dateFilterText.isBlank()) {
+            return null;
+        }
         try {
-            shows = showDao.searchByName(nameFilter);
-        } catch (SQLException e) {
-            shows = new ArrayList<>();
-            addErrorMessage("Search failed, please try again.");
+            return LocalDate.parse(dateFilterText, DATE_INPUT_FORMAT);
+        } catch (DateTimeParseException e) {
+            return null;
         }
     }
 
-    public void searchByDate() {
-        LocalDate date;
-        try {
-            date = LocalDate.parse(dateFilterText, DATE_INPUT_FORMAT);
-        } catch (DateTimeParseException | NullPointerException e) {
-            addErrorMessage("Enter a date as yyyy-mm-dd.");
-            return;
-        }
-        try {
-            shows = showDao.getShowsByDate(date);
-        } catch (SQLException e) {
-            shows = new ArrayList<>();
-            addErrorMessage("Search failed, please try again.");
-        }
+    /** True when at least one filter is narrowing the catalog — drives the "Clear" button. */
+    public boolean isFiltered() {
+        return (nameFilter != null && !nameFilter.isBlank())
+                || (categoryFilter != null && !categoryFilter.isBlank())
+                || (dateFilterText != null && !dateFilterText.isBlank());
+    }
+
+    /** Option value for the date dropdown; the label is formatted separately. */
+    public String dateOptionValue(LocalDate date) {
+        return date.format(DATE_INPUT_FORMAT);
+    }
+
+    public String dateOptionLabel(LocalDate date) {
+        return date.format(DATE_DISPLAY_FORMAT);
     }
 
     /** Formats an EventInstance's start time for display; used since JSF 2.2 has no java.time converter. */
@@ -169,6 +197,14 @@ public class CatalogBean implements Serializable {
 
     public List<Show> getShows() {
         return shows;
+    }
+
+    public List<String> getCategories() {
+        return categories;
+    }
+
+    public List<LocalDate> getScheduledDates() {
+        return scheduledDates;
     }
 
     public int getSid() {

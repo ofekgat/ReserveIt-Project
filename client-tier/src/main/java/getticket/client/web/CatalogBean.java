@@ -8,6 +8,10 @@ import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ViewScoped;
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -24,31 +28,80 @@ public class CatalogBean implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    // Search form fields (catalog.xhtml).
+    // JSF 2.2's built-in converters predate java.time, so dates are parsed/formatted
+    // by hand here instead of via <f:convertDateTime type="localDate/localDateTime">.
+    private static final DateTimeFormatter DATE_INPUT_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final DateTimeFormatter DATE_DISPLAY_FORMAT = DateTimeFormatter.ofPattern("EEE dd/MM/yyyy");
+    private static final DateTimeFormatter DISPLAY_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
+    // Search form fields (catalog.xhtml). The two dropdowns hold "" for "any".
     private String categoryFilter;
     private String nameFilter;
-    private LocalDate dateFilter;
+    private String dateFilterText;
     private List<Show> shows = Collections.emptyList();
+
+    // Dropdown options, read from what is actually in the catalog.
+    private List<String> categories = Collections.emptyList();
+    private List<LocalDate> scheduledDates = Collections.emptyList();
 
     // Show-details view parameter and the data it loads (showDetails.xhtml).
     private int sid;
     private Show selectedShow;
     private List<EventInstance> instancesForSelectedShow = Collections.emptyList();
 
+    /** Bound to catalog.xhtml's f:viewAction: fills the dropdowns and shows the whole catalog. */
     public void loadAllShows() {
-        shows = MockData.getAllShows();
+        categories = MockData.getAllCategories();
+        scheduledDates = MockData.getScheduledDates();
+        applyFilters();
     }
 
-    public void searchByCategory() {
-        shows = MockData.getShowsByCategory(categoryFilter);
+    /**
+     * Runs the catalog search with all three filters applied together, so
+     * narrowing by category and by date compose instead of replacing each other.
+     */
+    public void applyFilters() {
+        shows = MockData.searchShows(nameFilter, categoryFilter, parseDateFilter());
     }
 
-    public void searchByName() {
-        shows = MockData.searchShowsByName(nameFilter);
+    /** Resets every filter and shows the full catalog again. */
+    public void clearFilters() {
+        nameFilter = null;
+        categoryFilter = null;
+        dateFilterText = null;
+        applyFilters();
     }
 
-    public void searchByDate() {
-        shows = MockData.getShowsByDate(dateFilter);
+    /** The date dropdown submits "yyyy-MM-dd", or "" for "any date". */
+    private LocalDate parseDateFilter() {
+        if (dateFilterText == null || dateFilterText.isBlank()) {
+            return null;
+        }
+        try {
+            return LocalDate.parse(dateFilterText, DATE_INPUT_FORMAT);
+        } catch (DateTimeParseException e) {
+            return null;
+        }
+    }
+
+    /** True when at least one filter is narrowing the catalog — drives the "Clear" button. */
+    public boolean isFiltered() {
+        return (nameFilter != null && !nameFilter.isBlank())
+                || (categoryFilter != null && !categoryFilter.isBlank())
+                || (dateFilterText != null && !dateFilterText.isBlank());
+    }
+
+    public String dateOptionValue(LocalDate date) {
+        return date.format(DATE_INPUT_FORMAT);
+    }
+
+    public String dateOptionLabel(LocalDate date) {
+        return date.format(DATE_DISPLAY_FORMAT);
+    }
+
+    /** Formats an EventInstance's start time for display; used since JSF 2.2 has no java.time converter. */
+    public String formatDateTime(LocalDateTime dateTime) {
+        return dateTime == null ? "" : dateTime.format(DISPLAY_FORMAT);
     }
 
     /** Bound to showDetails.xhtml's f:viewAction; loads the show named by the sid view param. */
@@ -87,16 +140,24 @@ public class CatalogBean implements Serializable {
         this.nameFilter = nameFilter;
     }
 
-    public LocalDate getDateFilter() {
-        return dateFilter;
+    public String getDateFilterText() {
+        return dateFilterText;
     }
 
-    public void setDateFilter(LocalDate dateFilter) {
-        this.dateFilter = dateFilter;
+    public void setDateFilterText(String dateFilterText) {
+        this.dateFilterText = dateFilterText;
     }
 
     public List<Show> getShows() {
         return shows;
+    }
+
+    public List<String> getCategories() {
+        return categories;
+    }
+
+    public List<LocalDate> getScheduledDates() {
+        return scheduledDates;
     }
 
     public int getSid() {

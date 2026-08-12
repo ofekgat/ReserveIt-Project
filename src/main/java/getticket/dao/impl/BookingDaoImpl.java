@@ -71,6 +71,20 @@ public class BookingDaoImpl extends BaseDao implements BookingDao {
     }
 
     @Override
+    public List<Booking> getAll() throws SQLException {
+        return withConnection(this::getAll);
+    }
+
+    @Override
+    public List<Booking> getAll(Connection conn) throws SQLException {
+        String sql = "SELECT " + COLS + " FROM Bookings ORDER BY Booking_time DESC";
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            return mapRows(rs);
+        }
+    }
+
+    @Override
     public boolean update(Booking booking) throws SQLException {
         return withConnection(conn -> update(booking, conn));
     }

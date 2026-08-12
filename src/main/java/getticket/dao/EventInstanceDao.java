@@ -3,6 +3,7 @@ package getticket.dao;
 import getticket.model.EventInstance;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.List;
 
 public interface EventInstanceDao {
@@ -30,6 +31,14 @@ public interface EventInstanceDao {
 
     List<EventInstance> getInstancesByShow(int sid) throws SQLException;
     List<EventInstance> getInstancesByShow(int sid, Connection conn) throws SQLException;
+
+    /**
+     * Distinct dates that have at least one non-cancelled showtime, oldest first —
+     * the options for the catalog's date dropdown, so it can only ever offer dates
+     * something is actually playing on.
+     */
+    List<LocalDate> getScheduledDates() throws SQLException;
+    List<LocalDate> getScheduledDates(Connection conn) throws SQLException;
 
     boolean update(EventInstance instance) throws SQLException;
     boolean update(EventInstance instance, Connection conn) throws SQLException;

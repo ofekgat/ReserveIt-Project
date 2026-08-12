@@ -241,8 +241,22 @@ label { text-align: left; }
 .screen-heading h1 { font-size: clamp(34px, 5vw, 52px); margin: 7px 0; }
 .heading-badge { padding: 11px 16px; border-radius: 999px; background: rgba(124,34,255,.25); border: 1px solid rgba(184,102,255,.3); }
 .filter-card { display: grid; grid-template-columns: 1.4fr 1fr 1fr auto; gap: 15px; align-items: end; padding: 20px; margin-bottom: 28px; }
-.filter-field { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: end; }
+.filter-field { display: grid; gap: 8px; align-items: end; }
 .filter-field label { grid-column: 1 / -1; margin: 0; font-size: 12px; color: var(--muted); }
+.filter-actions { display: flex; gap: 10px; align-items: end; }
+
+/* Native selects don't inherit the dark theme, so restyle them to match the inputs. */
+.filter-select, .admin-select, .input-wrap select {
+  width: 100%; border: 0; background: transparent; color: white; padding: 13px 0;
+  outline: none; appearance: none; -webkit-appearance: none; cursor: pointer;
+  background-image: linear-gradient(45deg, transparent 50%, #c8b9e7 50%), linear-gradient(135deg, #c8b9e7 50%, transparent 50%);
+  background-position: right 4px top 50%, right 0px top 50%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 18px;
+}
+/* The dropdown list itself is drawn by the OS — give it readable colours. */
+.filter-select option, .admin-select option, .input-wrap select option { background: #1c0846; color: white; }
 .filter-field .input-wrap { min-width: 0; }
 .filter-button { padding: 11px 14px; }
 .show-all-button { align-self: end; }
@@ -277,8 +291,14 @@ label { text-align: left; }
 
 .inline-price { color: #f3d4ff; }
 .hall-card { overflow: hidden; }
-.seat-map { min-width: 0; grid-template-columns: repeat(12, minmax(40px, 1fr)); max-width: 810px; margin: auto; }
-.seat { width: 100%; min-width: 40px; }
+/* Cinema layout: the map is a stack of rows, each row one line of seats with the
+   row number on both sides. Rows are as wide as the hall needs, so the map itself
+   scrolls sideways rather than wrapping a row onto the next line. */
+.seat-map { min-width: 0; grid-template-columns: none; max-width: 100%; margin: auto; overflow-x: auto; }
+.seat-row { grid-template-columns: none; display: flex; flex-wrap: nowrap; gap: 8px; justify-content: center; width: max-content; min-width: 100%; }
+.row-label { flex: 0 0 25px; }
+.seat { width: 42px; min-width: 42px; flex: 0 0 42px; }
+.seat:disabled { pointer-events: none; }
 .checkout-button { min-width: 180px; }
 .general-card { max-width: 620px; margin: auto; padding: 34px; text-align: center; }
 .general-icon { font-size: 58px; }
@@ -297,7 +317,6 @@ label { text-align: left; }
 @media (max-width: 1050px) {
   .filter-card { grid-template-columns: 1fr 1fr; }
   .show-all-button { width: 100%; }
-  .seat-map { grid-template-columns: repeat(8, minmax(40px, 1fr)); }
 }
 @media (max-width: 900px) {
   .site-header { position: relative; top: 0; }
@@ -306,7 +325,6 @@ label { text-align: left; }
   .showtime-card { grid-template-columns: auto minmax(0, 1fr) auto; }
   .showtime-card form { grid-column: 2 / -1; }
   .showtime-card form input { width: 100%; }
-  .seat-map { grid-template-columns: repeat(6, minmax(40px, 1fr)); }
 }
 @media (max-width: 700px) {
   .site-header { align-items: flex-start; }
@@ -321,7 +339,7 @@ label { text-align: left; }
   .showtime-card { grid-template-columns: auto 1fr; }
   .availability-block { justify-items: start; grid-column: 2; }
   .showtime-card form { grid-column: 1 / -1; }
-  .seat-map { grid-template-columns: repeat(4, minmax(42px, 1fr)); }
+  .seat { width: 36px; min-width: 36px; flex-basis: 36px; height: 34px; }
   .quantity-row { grid-template-columns: 1fr; }
 }
 @media (max-width: 470px) {
@@ -329,7 +347,46 @@ label { text-align: left; }
   .brand-mark { font-size: 32px; }
   .brand-copy strong { font-size: 17px; }
   .screen-heading h1, .details-copy > h1 { font-size: 34px; }
-  .seat-map { grid-template-columns: repeat(3, minmax(42px, 1fr)); }
+  .seat { width: 32px; min-width: 32px; flex-basis: 32px; height: 32px; font-size: 10px; }
   .selection-summary { gap: 14px; }
   .checkout-button { width: 100%; }
+}
+
+/* --------------------------------------------------------------------------
+   Admin area (venues / shows & showtimes / orders)
+   -------------------------------------------------------------------------- */
+.admin-nav-group { display: flex; align-items: center; gap: 4px; padding-inline-start: 8px; margin-inline-start: 8px; border-inline-start: 1px solid rgba(255,255,255,.14); }
+.admin-subnav { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 16px; margin-bottom: 24px; }
+.admin-subnav .nav-link { background: rgba(255,255,255,.05); }
+
+.admin-form-card { padding: 26px 28px; margin-bottom: 26px; }
+.admin-form-card h2 { margin: 0 0 6px; }
+.admin-textarea textarea { width: 100%; min-height: 90px; border: 0; background: transparent; color: white; padding: 13px 0; outline: none; resize: vertical; }
+.admin-radio-row { margin: 10px 0 16px; }
+.admin-inline-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.admin-form-actions { display: flex; gap: 12px; margin-top: 20px; }
+
+.admin-table-wrap { padding: 8px; margin-bottom: 26px; overflow-x: auto; }
+.admin-table { width: 100%; border-collapse: collapse; min-width: 640px; }
+.admin-table th { text-align: left; color: var(--muted); font-size: 12px; letter-spacing: .3px; text-transform: uppercase; padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,.12); }
+.admin-table td { padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,.07); vertical-align: middle; }
+.admin-table tbody tr:last-child td { border-bottom: 0; }
+.admin-table tbody tr:hover td { background: rgba(255,255,255,.03); }
+.admin-row-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.admin-instances-cell { background: rgba(0,0,0,.18); }
+.admin-instances-panel { padding: 10px 4px 6px; }
+.admin-instances-panel h3 { margin: 0 0 14px; font-size: 18px; }
+.admin-instances-panel h4 { margin: 18px 0 10px; font-size: 14px; color: var(--muted); }
+.admin-empty-note { margin-bottom: 12px; }
+.admin-subtable { min-width: 0; margin-bottom: 6px; }
+.admin-instance-form { display: grid; grid-template-columns: repeat(4, 1fr) auto; gap: 10px; align-items: center; }
+
+@media (max-width: 900px) {
+  .admin-nav-group { flex-wrap: wrap; border-inline-start: 0; padding-inline-start: 0; margin-inline-start: 0; }
+  .admin-instance-form { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 700px) {
+  .admin-inline-fields { grid-template-columns: 1fr; }
+  .admin-instance-form { grid-template-columns: 1fr; }
 }

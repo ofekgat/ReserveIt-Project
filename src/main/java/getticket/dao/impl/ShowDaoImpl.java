@@ -120,6 +120,63 @@ public class ShowDaoImpl extends BaseDao implements ShowDao {
     }
 
     @Override
+    public List<Show> search(String nameFragment, String category, LocalDate date) throws SQLException {
+        return withConnection(conn -> search(nameFragment, category, date, conn));
+    }
+
+    @Override
+    public List<Show> search(String nameFragment, String category, LocalDate date, Connection conn)
+            throws SQLException {
+        // The WHERE clause is assembled from whichever filters were supplied, but every
+        // user-supplied value is still bound as a parameter — only fixed SQL fragments
+        // are ever concatenated, so this stays injection-safe.
+        StringBuilder sql = new StringBuilder("SELECT DISTINCT s.Sid, s.Sname, s.Description, s.Category, s.ImageUrl FROM Shows s");
+        List<Object> params = new ArrayList<>();
+
+        if (date != null) {
+            sql.append(" JOIN Event_Instances ei ON ei.Sid = s.Sid AND DATE(ei.Start_time) = ?");
+            params.add(Date.valueOf(date));
+        }
+        sql.append(" WHERE 1 = 1");
+        if (nameFragment != null && !nameFragment.isBlank()) {
+            sql.append(" AND s.Sname LIKE ?");
+            params.add("%" + nameFragment.trim() + "%");
+        }
+        if (category != null && !category.isBlank()) {
+            sql.append(" AND s.Category = ?");
+            params.add(category.trim());
+        }
+        sql.append(" ORDER BY s.Sname");
+
+        try (PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                return mapRows(rs);
+            }
+        }
+    }
+
+    @Override
+    public List<String> getAllCategories() throws SQLException {
+        return withConnection(this::getAllCategories);
+    }
+
+    @Override
+    public List<String> getAllCategories(Connection conn) throws SQLException {
+        String sql = "SELECT DISTINCT Category FROM Shows ORDER BY Category";
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            List<String> categories = new ArrayList<>();
+            while (rs.next()) {
+                categories.add(rs.getString("Category"));
+            }
+            return categories;
+        }
+    }
+
+    @Override
     public boolean update(Show show) throws SQLException {
         return withConnection(conn -> update(show, conn));
     }

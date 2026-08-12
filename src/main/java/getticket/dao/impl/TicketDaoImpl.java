@@ -113,6 +113,18 @@ public class TicketDaoImpl extends BaseDao implements TicketDao {
     }
 
     @Override
+    public int countByVenue(int vid, Connection conn) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM Tickets t JOIN Seats s ON s.Seat_id = t.Seat_id WHERE s.Vid = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, vid);
+            try (ResultSet rs = ps.executeQuery()) {
+                rs.next();
+                return rs.getInt(1);
+            }
+        }
+    }
+
+    @Override
     public boolean delete(int ticketId) throws SQLException {
         return withConnection(conn -> delete(ticketId, conn));
     }

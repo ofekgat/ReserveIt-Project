@@ -16,7 +16,10 @@ import javax.faces.context.FacesContext;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Backing bean for the shopping-cart / checkout flow: collect selected seats
@@ -36,7 +39,12 @@ public class CheckoutBean implements Serializable {
 
     private EventInstance eventInstance;
     private Venue venue;
-    private List<Seat> availableSeats = Collections.emptyList();
+
+    // The whole hall, not just what's free: a taken seat has to stay on the map
+    // (greyed out) so the customer can see where the gaps are.
+    private List<SeatRow> seatRows = Collections.emptyList();
+    private Set<Integer> takenSeatIds = Collections.emptySet();
+
     private final List<Integer> selectedSeatIds = new ArrayList<>();
     private int ticketQuantity = 1;
 
@@ -50,12 +58,37 @@ public class CheckoutBean implements Serializable {
             return null;
         }
         venue = MockData.getVenueById(eventInstance.getVid());
-        availableSeats = venue != null && venue.isNumbered()
-                ? MockData.getAvailableSeats(instanceId)
-                : Collections.emptyList();
         selectedSeatIds.clear();
         ticketQuantity = 1;
+        loadSeatMap();
         return "/seatSelection?faces-redirect=true";
+    }
+
+    /**
+     * Loads the venue's full seat map plus the set of seats already ticketed for
+     * this instance, then groups the seats into rows for display.
+     */
+    private void loadSeatMap() {
+        if (venue == null || !venue.isNumbered()) {
+            seatRows = Collections.emptyList();
+            takenSeatIds = Collections.emptySet();
+            return;
+        }
+        takenSeatIds = MockData.getTakenSeatIds(eventInstance.getInstanceId());
+        seatRows = groupIntoRows(MockData.getSeatMap(eventInstance.getInstanceId()));
+    }
+
+    /** Groups seats into one SeatRow per row number; the source list is already ordered. */
+    private List<SeatRow> groupIntoRows(List<Seat> seats) {
+        Map<Integer, List<Seat>> byRow = new LinkedHashMap<>();
+        for (Seat seat : seats) {
+            byRow.computeIfAbsent(seat.getRowNum(), r -> new ArrayList<>()).add(seat);
+        }
+        List<SeatRow> rows = new ArrayList<>(byRow.size());
+        for (Map.Entry<Integer, List<Seat>> entry : byRow.entrySet()) {
+            rows.add(new SeatRow(entry.getKey(), entry.getValue()));
+        }
+        return rows;
     }
 
     public void toggleSeat(int seatId) {
@@ -66,6 +99,11 @@ public class CheckoutBean implements Serializable {
 
     public boolean isSeatSelected(int seatId) {
         return selectedSeatIds.contains(seatId);
+    }
+
+    /** True when this seat is already ticketed for the current showtime. */
+    public boolean isSeatTaken(int seatId) {
+        return takenSeatIds.contains(seatId);
     }
 
     public double getTotalPrice() {
@@ -105,7 +143,7 @@ public class CheckoutBean implements Serializable {
             return "/confirmation?faces-redirect=true";
         } catch (SeatUnavailableException e) {
             selectedSeatIds.removeAll(e.getUnavailableSeatIds());
-            refreshAvailableSeats();
+            refreshSeatMap();
             addErrorMessage("Some selected seats were just booked by someone else. Please choose again.");
             return null;
         } catch (InsufficientTicketsException e) {
@@ -114,8 +152,8 @@ public class CheckoutBean implements Serializable {
         }
     }
 
-    private void refreshAvailableSeats() {
-        availableSeats = MockData.getAvailableSeats(eventInstance.getInstanceId());
+    private void refreshSeatMap() {
+        loadSeatMap();
     }
 
     private void addErrorMessage(String detail) {
@@ -135,8 +173,8 @@ public class CheckoutBean implements Serializable {
         return venue;
     }
 
-    public List<Seat> getAvailableSeats() {
-        return availableSeats;
+    public List<SeatRow> getSeatRows() {
+        return seatRows;
     }
 
     public List<Integer> getSelectedSeatIds() {
@@ -153,5 +191,26 @@ public class CheckoutBean implements Serializable {
 
     public Booking getLastBooking() {
         return lastBooking;
+    }
+
+    /** One row of the hall, so the seat map can be rendered a row per line like a cinema. */
+    public static class SeatRow implements Serializable {
+        private static final long serialVersionUID = 1L;
+
+        private final int rowNum;
+        private final List<Seat> seats;
+
+        SeatRow(int rowNum, List<Seat> seats) {
+            this.rowNum = rowNum;
+            this.seats = seats;
+        }
+
+        public int getRowNum() {
+            return rowNum;
+        }
+
+        public List<Seat> getSeats() {
+            return seats;
+        }
     }
 }

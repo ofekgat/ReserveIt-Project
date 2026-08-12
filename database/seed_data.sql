@@ -10,10 +10,11 @@ INSERT INTO Locations (City, Address) VALUES
 ('ירושלים',  'יפו 97');
 
 -- ---------- Users ----------
--- NOTE: these are placeholder hash strings, not real hashes.
--- Real values will come from PasswordUtil.
+-- 'admin' is a real PasswordUtil (PBKDF2WithHmacSHA256) hash for password "admin123",
+-- so the seeded admin account can actually log in. yossi/dana are still placeholders —
+-- they're demo customers, not needed to exercise the admin area.
 INSERT INTO Users (Uname, Password, Email, Role) VALUES
-('admin', '$2a$10$PLACEHOLDER_HASH_ADMIN', 'admin@getticket.co.il', 'ADMIN'),
+('admin', '65536:eyW1g/DGVcTEXhNjRLENMA==:+zpHn36Kd0QPJkI9rPIY8VEEkWN/2cKwB43ECngP2k8=', 'admin@getticket.co.il', 'ADMIN'),
 ('yossi', '$2a$10$PLACEHOLDER_HASH_YOSSI', 'yossi@example.com',     'CUSTOMER'),
 ('dana',  '$2a$10$PLACEHOLDER_HASH_DANA',  'dana@example.com',      'CUSTOMER');
 

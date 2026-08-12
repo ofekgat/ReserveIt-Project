@@ -51,6 +51,23 @@
         <url-pattern>/reviews.xhtml</url-pattern>
     </filter-mapping>
 
+    <filter>
+        <filter-name>AdminFilter</filter-name>
+        <filter-class>getticket.client.web.AdminFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>AdminFilter</filter-name>
+        <url-pattern>/adminVenues.xhtml</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AdminFilter</filter-name>
+        <url-pattern>/adminShows.xhtml</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AdminFilter</filter-name>
+        <url-pattern>/adminOrders.xhtml</url-pattern>
+    </filter-mapping>
+
     <welcome-file-list>
         <welcome-file>login.xhtml</welcome-file>
     </welcome-file-list>

@@ -165,6 +165,15 @@ public class SeatDaoImpl extends BaseDao implements SeatDao {
         }
     }
 
+    @Override
+    public int deleteByVenue(int vid, Connection conn) throws SQLException {
+        String sql = "DELETE FROM Seats WHERE Vid = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, vid);
+            return ps.executeUpdate();
+        }
+    }
+
     private List<Seat> mapRows(ResultSet rs) throws SQLException {
         List<Seat> seats = new ArrayList<>();
         while (rs.next()) {

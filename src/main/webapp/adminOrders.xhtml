@@ -1,0 +1,73 @@
+<ui:composition template="/WEB-INF/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+    <ui:define name="title">Orders - ReserveIt</ui:define>
+    <ui:define name="content">
+        <f:metadata>
+            <f:viewAction action="#{adminOrdersBean.loadAll}" onPostback="false" />
+        </f:metadata>
+
+        <section class="screen-heading">
+            <div>
+                <span class="eyebrow">ADMIN</span>
+                <h1>Track orders</h1>
+                <p class="muted">Every booking made in the system, across all customers.</p>
+            </div>
+            <div class="heading-badge">🧾 Orders</div>
+        </section>
+
+        <ui:include src="/WEB-INF/adminNav.xhtml" />
+
+        <h:panelGroup rendered="#{empty adminOrdersBean.orders}" layout="block" styleClass="empty-state glass-card">
+            <div class="empty-icon">🧾</div>
+            <h2>No orders yet</h2>
+            <p>Bookings placed by customers will show up here.</p>
+        </h:panelGroup>
+
+        <h:form id="ordersForm" rendered="#{not empty adminOrdersBean.orders}">
+            <h:panelGroup layout="block" styleClass="admin-table-wrap glass-card">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Order #</th>
+                            <th>Customer</th>
+                            <th>Show</th>
+                            <th>Venue</th>
+                            <th>Showtime</th>
+                            <th>Tickets</th>
+                            <th>Total</th>
+                            <th>Placed</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <ui:repeat value="#{adminOrdersBean.orders}" var="order">
+                            <tr>
+                                <td>##{order.booking.bookingId}</td>
+                                <td>#{order.username}</td>
+                                <td>#{order.showName}</td>
+                                <td>#{order.venueName}</td>
+                                <td>#{adminOrdersBean.formatDateTime(order.showTime)}</td>
+                                <td>#{order.ticketCount}</td>
+                                <td><h:outputText value="#{order.booking.totalPrice}"><f:convertNumber type="currency" currencySymbol="₪" /></h:outputText></td>
+                                <td>#{adminOrdersBean.formatDateTime(order.booking.bookingTime)}</td>
+                                <td>
+                                    <h:selectOneMenu value="#{order.booking.status}">
+                                        <f:selectItems value="#{adminOrdersBean.statusOptions}" />
+                                    </h:selectOneMenu>
+                                </td>
+                                <td>
+                                    <h:commandButton value="Update" action="#{adminOrdersBean.updateStatus(order)}"
+                                                     styleClass="secondary-button compact-button" />
+                                </td>
+                            </tr>
+                        </ui:repeat>
+                    </tbody>
+                </table>
+            </h:panelGroup>
+        </h:form>
+    </ui:define>
+</ui:composition>

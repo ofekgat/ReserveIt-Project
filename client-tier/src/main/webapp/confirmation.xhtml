@@ -11,7 +11,7 @@
             <p>Status: #{checkoutBean.lastBooking.status}</p>
             <p>Total paid:
                 <h:outputText value="#{checkoutBean.lastBooking.totalPrice}">
-                    <f:convertNumber type="currency" currencySymbol="$" />
+                    <f:convertNumber type="currency" currencySymbol="₪" />
                 </h:outputText>
             </p>
             <h:link outcome="/myBookings" value="View my tickets" />

@@ -77,9 +77,36 @@ body {
 
 .search-bar {
     display: flex;
-    gap: 8px;
+    gap: 12px;
     flex-wrap: wrap;
+    align-items: flex-end;
     margin-bottom: 20px;
+    background: white;
+    border-radius: 8px;
+    padding: 14px 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.filter-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.filter-field label {
+    font-size: 0.75em;
+    text-transform: uppercase;
+    letter-spacing: .3px;
+    color: #666;
+}
+
+.search-bar input[type="text"],
+.search-bar select {
+    padding: 7px 9px;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    background: white;
+    min-width: 160px;
 }
 
 .show-grid {
@@ -125,25 +152,87 @@ body {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.seat-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
-    gap: 8px;
+/* Cinema layout: the map is a stack of rows, each row one line of seats with the
+   row number on both sides. Rows never wrap — the map scrolls sideways instead. */
+.seat-map {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
     margin: 16px 0;
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+
+.seat-row {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 6px;
+    align-items: center;
+    justify-content: center;
+    width: max-content;
+    min-width: 100%;
+}
+
+.row-label {
+    flex: 0 0 22px;
+    text-align: center;
+    color: #888;
+    font-size: 0.8em;
+    font-weight: bold;
 }
 
 .seat {
+    flex: 0 0 34px;
+    width: 34px;
+    height: 30px;
     background: #e2e8f0;
     border: 1px solid #cbd5e1;
-    border-radius: 4px;
-    padding: 8px;
+    border-radius: 4px 4px 2px 2px;
+    padding: 0;
+    font-size: 0.75em;
     cursor: pointer;
 }
 
 .seat.selected {
     background: #1f2a44;
+    border-color: #1f2a44;
     color: white;
 }
+
+.seat.occupied {
+    background: #b9bec7;
+    border-color: #a7adb6;
+    color: #6b7280;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.seat-legend {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    font-size: 0.85em;
+    color: #555;
+    margin-top: 12px;
+}
+
+.seat-legend span {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.legend-seat {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    display: inline-block;
+    border: 1px solid #cbd5e1;
+}
+
+.legend-seat.available { background: #e2e8f0; }
+.legend-seat.selected { background: #1f2a44; border-color: #1f2a44; }
+.legend-seat.occupied { background: #b9bec7; border-color: #a7adb6; }
 
 .total-price {
     font-size: 1.2em;
@@ -226,4 +315,46 @@ body {
 .stars {
     color: #f5a623;
     letter-spacing: 2px;
+}
+
+/* Admin area (venues / shows & showtimes / orders) */
+
+.admin-subnav {
+    display: flex;
+    gap: 16px;
+    margin: 12px 0 20px;
+}
+
+.admin-subnav a {
+    color: #1f2a44;
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+    margin-bottom: 20px;
+}
+
+.admin-table th,
+.admin-table td {
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.admin-table th {
+    background: #eef1f6;
+    font-size: 0.85em;
+    text-transform: uppercase;
+    color: #555;
+}
+
+.admin-table tbody tr:last-child td {
+    border-bottom: none;
 }

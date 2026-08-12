@@ -10,6 +10,11 @@
     <div class="topbar">
         <h:link outcome="/catalog" value="GetTicket" styleClass="brand" />
         <div class="nav-right">
+            <h:panelGroup rendered="#{userSessionBean.admin}">
+                <h:link outcome="/adminVenues" value="Venues" />
+                <h:link outcome="/adminShows" value="Shows admin" />
+                <h:link outcome="/adminOrders" value="Orders" />
+            </h:panelGroup>
             <h:panelGroup rendered="#{userSessionBean.loggedIn}">
                 <h:link outcome="/myBookings" value="My Tickets" />
                 <span>Hi, #{userSessionBean.currentUser.uname}</span>

@@ -24,6 +24,7 @@ public class UserSessionBean implements Serializable {
     private static final long serialVersionUID = 1L;
 
     static final String SESSION_UID_ATTRIBUTE = "uid";
+    static final String SESSION_ROLE_ATTRIBUTE = "role";
 
     // Login/registration form fields.
     private String uname;
@@ -65,9 +66,15 @@ public class UserSessionBean implements Serializable {
         return currentUser != null;
     }
 
+    public boolean isAdmin() {
+        return currentUser != null && "ADMIN".equalsIgnoreCase(currentUser.getRole());
+    }
+
     private void markLoggedIn() {
         FacesContext.getCurrentInstance().getExternalContext()
                 .getSessionMap().put(SESSION_UID_ATTRIBUTE, currentUser.getUid());
+        FacesContext.getCurrentInstance().getExternalContext()
+                .getSessionMap().put(SESSION_ROLE_ATTRIBUTE, currentUser.getRole());
     }
 
     private void clearForm() {

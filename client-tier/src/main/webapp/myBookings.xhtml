@@ -24,21 +24,17 @@
                     </div>
                     <p>#{summary.venueName}
                         &#160;&#8211;&#160;
-                        <h:outputText value="#{summary.showTime}">
-                            <f:convertDateTime type="localDateTime" pattern="dd/MM/yyyy HH:mm" />
-                        </h:outputText>
+                        #{bookingHistoryBean.formatDateTime(summary.showTime)}
                     </p>
                     <p>#{summary.ticketCount} ticket(s)
                         &#160;&#8211;&#160;
                         <h:outputText value="#{summary.booking.totalPrice}">
-                            <f:convertNumber type="currency" currencySymbol="$" />
+                            <f:convertNumber type="currency" currencySymbol="₪" />
                         </h:outputText>
                     </p>
                     <p class="booking-meta">Booking #<h:outputText value="#{summary.booking.bookingId}" />
                         &#160;&#8211;&#160; booked
-                        <h:outputText value="#{summary.booking.bookingTime}">
-                            <f:convertDateTime type="localDateTime" pattern="dd/MM/yyyy" />
-                        </h:outputText>
+                        #{bookingHistoryBean.formatDate(summary.booking.bookingTime)}
                     </p>
                 </div>
             </ui:repeat>

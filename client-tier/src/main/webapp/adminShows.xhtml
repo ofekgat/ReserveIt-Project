@@ -1,0 +1,138 @@
+<ui:composition template="/WEB-INF/template.xhtml"
+                 xmlns="http://www.w3.org/1999/xhtml"
+                 xmlns:h="http://xmlns.jcp.org/jsf/html"
+                 xmlns:f="http://xmlns.jcp.org/jsf/core"
+                 xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                 xmlns:jsf="http://xmlns.jcp.org/jsf"
+                 xmlns:pt="http://xmlns.jcp.org/jsf/passthrough">
+    <ui:define name="title">Manage shows - GetTicket</ui:define>
+    <ui:define name="content">
+        <f:metadata>
+            <f:viewAction action="#{adminShowBean.loadAll}" onPostback="false" />
+        </f:metadata>
+
+        <h2>Manage shows &amp; showtimes</h2>
+        <p class="hint">Add a new show, then schedule its performances (venue, time, price, availability).</p>
+
+        <ui:include src="/WEB-INF/adminNav.xhtml" />
+
+        <h:form styleClass="card">
+            <h3>#{adminShowBean.editingShow ? 'Edit show' : 'Add a new show'}</h3>
+            <h:panelGrid columns="2">
+                <h:outputLabel for="sname" value="Show name" />
+                <h:inputText id="sname" value="#{adminShowBean.sname}" required="true" />
+
+                <h:outputLabel for="category" value="Category" />
+                <h:inputText id="category" value="#{adminShowBean.category}" required="true" />
+
+                <h:outputLabel for="description" value="Description" />
+                <h:inputTextarea id="description" value="#{adminShowBean.description}" cols="40" rows="3" />
+
+                <h:outputLabel for="imageUrl" value="Image URL" />
+                <h:inputText id="imageUrl" value="#{adminShowBean.imageUrl}" />
+            </h:panelGrid>
+            <h:commandButton value="#{adminShowBean.editingShow ? 'Save changes' : 'Create show'}"
+                             action="#{adminShowBean.saveShow}" />
+            <h:commandButton value="Cancel" action="#{adminShowBean.startCreateShow}"
+                             rendered="#{adminShowBean.editingShow}" immediate="true" />
+        </h:form>
+
+        <h:panelGroup rendered="#{empty adminShowBean.shows}">
+            <p>No shows yet. Create the first one above.</p>
+        </h:panelGroup>
+
+        <h:form id="showsForm" rendered="#{not empty adminShowBean.shows}">
+            <h:panelGroup id="showsPanel" layout="block">
+                <table class="admin-table">
+                    <thead>
+                        <tr><th>Name</th><th>Category</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                        <ui:repeat value="#{adminShowBean.shows}" var="show">
+                            <tr>
+                                <td>#{show.sname}</td>
+                                <td><span class="category">#{show.category}</span></td>
+                                <td>
+                                    <h:commandButton value="#{adminShowBean.expandedSid == show.sid ? 'Hide showtimes' : 'Manage showtimes'}">
+                                        <f:ajax execute="@this" render="@form"
+                                                listener="#{adminShowBean.toggleInstances(show.sid)}" />
+                                    </h:commandButton>
+                                    <h:commandButton value="Edit" action="#{adminShowBean.startEditShow(show)}" immediate="true" />
+                                    <h:commandButton value="Delete" action="#{adminShowBean.deleteShow(show.sid)}"
+                                                     onclick="return confirm('Delete this show?');" />
+                                </td>
+                            </tr>
+                            <tr jsf:rendered="#{adminShowBean.expandedSid == show.sid}">
+                                <td colspan="3">
+                                    <div class="card">
+                                        <h4>Showtimes for "#{show.sname}"</h4>
+
+                                        <h:panelGroup rendered="#{empty adminShowBean.instancesForExpandedShow}">
+                                            <p class="hint">No showtimes scheduled yet.</p>
+                                        </h:panelGroup>
+
+                                        <h:panelGroup rendered="#{not empty adminShowBean.instancesForExpandedShow}" layout="block">
+                                            <table class="admin-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Venue</th><th>Start time</th><th>Price</th>
+                                                        <th>Available</th><th>Status</th><th></th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <ui:repeat value="#{adminShowBean.instancesForExpandedShow}" var="instance">
+                                                        <tr>
+                                                            <td>#{adminShowBean.venueNameFor(instance.vid)}</td>
+                                                            <td>#{adminShowBean.formatDateTime(instance.startTime)}</td>
+                                                            <td><h:outputText value="#{instance.ticketPrice}"><f:convertNumber type="currency" currencySymbol="₪" /></h:outputText></td>
+                                                            <td>#{instance.availableTickets}</td>
+                                                            <td>#{instance.eventStatus}</td>
+                                                            <td>
+                                                                <h:commandButton value="Edit" action="#{adminShowBean.startEditInstance(instance)}" immediate="true" />
+                                                                <h:commandButton value="Delete" action="#{adminShowBean.deleteInstance(instance.instanceId)}"
+                                                                                 onclick="return confirm('Delete this showtime?');" />
+                                                            </td>
+                                                        </tr>
+                                                    </ui:repeat>
+                                                </tbody>
+                                            </table>
+                                        </h:panelGroup>
+
+                                        <h4>#{adminShowBean.editingInstance ? 'Edit showtime' : 'Add a showtime'}</h4>
+                                        <h:panelGrid columns="2">
+                                            <h:outputLabel value="Venue" />
+                                            <h:selectOneMenu value="#{adminShowBean.instanceVid}">
+                                                <f:selectItems value="#{adminShowBean.venues}" var="v"
+                                                               itemValue="#{v.vid}" itemLabel="#{v.vname}" />
+                                                <f:ajax listener="#{adminShowBean.venueChanged}" render="@form" />
+                                            </h:selectOneMenu>
+
+                                            <h:outputLabel value="Start time" />
+                                            <h:inputText value="#{adminShowBean.startTimeText}" pt:type="datetime-local" />
+
+                                            <h:outputLabel value="Price" />
+                                            <h:inputText value="#{adminShowBean.ticketPrice}" />
+
+                                            <h:outputLabel value="Available tickets" />
+                                            <h:inputText value="#{adminShowBean.availableTickets}" />
+
+                                            <h:outputLabel value="Status" />
+                                            <h:selectOneMenu value="#{adminShowBean.eventStatus}">
+                                                <f:selectItem itemValue="SCHEDULED" itemLabel="Scheduled" />
+                                                <f:selectItem itemValue="POSTPONED" itemLabel="Postponed" />
+                                                <f:selectItem itemValue="CANCELLED" itemLabel="Cancelled" />
+                                                <f:selectItem itemValue="SOLD_OUT" itemLabel="Sold out" />
+                                            </h:selectOneMenu>
+                                        </h:panelGrid>
+                                        <h:commandButton value="#{adminShowBean.editingInstance ? 'Save' : 'Add showtime'}"
+                                                         action="#{adminShowBean.saveInstance}" />
+                                    </div>
+                                </td>
+                            </tr>
+                        </ui:repeat>
+                    </tbody>
+                </table>
+            </h:panelGroup>
+        </h:form>
+    </ui:define>
+</ui:composition>

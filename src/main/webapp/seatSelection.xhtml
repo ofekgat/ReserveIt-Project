@@ -21,7 +21,7 @@
                     <p class="muted">Price per ticket:
                         <strong class="inline-price">
                             <h:outputText value="#{checkoutBean.eventInstance.ticketPrice}">
-                                <f:convertNumber type="currency" currencySymbol="$" />
+                                <f:convertNumber type="currency" currencySymbol="₪" />
                             </h:outputText>
                         </strong>
                     </p>
@@ -44,29 +44,40 @@
                 <div class="legend">
                     <span><i class="legend-seat regular"></i>Available</span>
                     <span><i class="legend-seat selected"></i>Selected</span>
+                    <span><i class="legend-seat occupied"></i>Taken</span>
                 </div>
 
                 <h:panelGroup id="seatMap" layout="block" styleClass="seat-map">
-                    <ui:repeat value="#{checkoutBean.availableSeats}" var="seat">
-                        <h:commandButton value="#{seat.rowNum}-#{seat.seatNum}"
-                                         title="Row #{seat.rowNum}, seat #{seat.seatNum}"
-                                         action="#{checkoutBean.toggleSeat(seat.seatId)}"
-                                         styleClass="seat #{checkoutBean.isSeatSelected(seat.seatId) ? 'selected' : 'regular'}">
-                            <f:ajax execute="@this" render="seatMap selectionSummary" />
-                        </h:commandButton>
+                    <ui:repeat value="#{checkoutBean.seatRows}" var="seatRow">
+                        <div class="seat-row">
+                            <span class="row-label">#{seatRow.rowNum}</span>
+                            <ui:repeat value="#{seatRow.seats}" var="seat">
+                                <h:commandButton value="#{seat.seatNum}"
+                                                 title="Row #{seat.rowNum}, seat #{seat.seatNum}#{checkoutBean.isSeatTaken(seat.seatId) ? ' — already taken' : ''}"
+                                                 action="#{checkoutBean.toggleSeat(seat.seatId)}"
+                                                 disabled="#{checkoutBean.isSeatTaken(seat.seatId)}"
+                                                 styleClass="seat #{checkoutBean.isSeatTaken(seat.seatId) ? 'occupied' : (checkoutBean.isSeatSelected(seat.seatId) ? 'selected' : 'regular')}">
+                                    <!-- render="@form", not the two panel ids: this button sits inside
+                                         ui:repeat (a naming container), from which those ids don't
+                                         resolve — the request would succeed but update nothing. -->
+                                    <f:ajax execute="@this" render="@form" />
+                                </h:commandButton>
+                            </ui:repeat>
+                            <span class="row-label">#{seatRow.rowNum}</span>
+                        </div>
                     </ui:repeat>
                 </h:panelGroup>
 
-                <h:panelGroup rendered="#{empty checkoutBean.availableSeats}" layout="block" styleClass="empty-state compact-empty">
-                    <p>No numbered seats are currently available.</p>
+                <h:panelGroup rendered="#{empty checkoutBean.seatRows}" layout="block" styleClass="empty-state compact-empty">
+                    <p>This venue has no seat map yet. Ask an administrator to set up its seating.</p>
                 </h:panelGroup>
 
                 <h:panelGroup id="selectionSummary" layout="block" styleClass="selection-summary">
                     <div>
                         <span class="summary-label">Selected seats</span>
                         <div class="seat-tags">
-                            <ui:repeat value="#{checkoutBean.selectedSeatIds}" var="seatId">
-                                <span class="seat-tag">Seat ID #{seatId}</span>
+                            <ui:repeat value="#{checkoutBean.selectedSeatLabels}" var="seatLabel">
+                                <span class="seat-tag">#{seatLabel}</span>
                             </ui:repeat>
                             <h:panelGroup rendered="#{empty checkoutBean.selectedSeatIds}">
                                 <span class="empty-tag">Choose at least one seat</span>
@@ -77,7 +88,7 @@
                         <span>Total</span>
                         <strong>
                             <h:outputText value="#{checkoutBean.totalPrice}">
-                                <f:convertNumber type="currency" currencySymbol="$" />
+                                <f:convertNumber type="currency" currencySymbol="₪" />
                             </h:outputText>
                         </strong>
                     </div>
@@ -115,7 +126,7 @@
                     <span>Total</span>
                     <strong>
                         <h:outputText value="#{checkoutBean.totalPrice}">
-                            <f:convertNumber type="currency" currencySymbol="$" />
+                            <f:convertNumber type="currency" currencySymbol="₪" />
                         </h:outputText>
                     </strong>
                 </h:panelGroup>

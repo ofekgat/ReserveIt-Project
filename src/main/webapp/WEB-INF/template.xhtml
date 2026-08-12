@@ -25,6 +25,11 @@
 
             <nav class="site-nav" aria-label="Main navigation">
                 <h:link outcome="/catalog" value="Shows" styleClass="nav-link" />
+                <h:panelGroup rendered="#{userSessionBean.admin}" layout="block" styleClass="admin-nav-group">
+                    <h:link outcome="/adminVenues" value="Venues" styleClass="nav-link" />
+                    <h:link outcome="/adminShows" value="Shows admin" styleClass="nav-link" />
+                    <h:link outcome="/adminOrders" value="Orders" styleClass="nav-link" />
+                </h:panelGroup>
                 <h:panelGroup rendered="#{userSessionBean.loggedIn}" layout="block" styleClass="account-area">
                     <span class="welcome-text">Hi, #{userSessionBean.currentUser.uname}</span>
                     <h:form styleClass="inline-form">

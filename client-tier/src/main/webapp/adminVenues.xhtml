@@ -1,0 +1,73 @@
+<ui:composition template="/WEB-INF/template.xhtml"
+                 xmlns="http://www.w3.org/1999/xhtml"
+                 xmlns:h="http://xmlns.jcp.org/jsf/html"
+                 xmlns:f="http://xmlns.jcp.org/jsf/core"
+                 xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+    <ui:define name="title">Manage venues - GetTicket</ui:define>
+    <ui:define name="content">
+        <f:metadata>
+            <f:viewAction action="#{adminVenueBean.loadAll}" onPostback="false" />
+        </f:metadata>
+
+        <h2>Manage venues</h2>
+        <p class="hint">Enter new halls, or edit capacity and seating for existing ones.</p>
+
+        <ui:include src="/WEB-INF/adminNav.xhtml" />
+
+        <h:form styleClass="card">
+            <h3>#{adminVenueBean.editing ? 'Edit venue' : 'Add a new venue'}</h3>
+            <h:panelGrid columns="2">
+                <h:outputLabel for="vname" value="Venue name" />
+                <h:inputText id="vname" value="#{adminVenueBean.vname}" required="true" />
+
+                <h:outputLabel for="vcapacity" value="Capacity" />
+                <h:inputText id="vcapacity" value="#{adminVenueBean.vcapacity}" required="true" />
+
+                <h:outputLabel for="numbered" value="Numbered seating" />
+                <h:selectBooleanCheckbox id="numbered" value="#{adminVenueBean.numbered}" />
+
+                <h:outputLabel for="seatsPerRow" value="Seats per row" />
+                <h:inputText id="seatsPerRow" value="#{adminVenueBean.seatsPerRow}" size="4" />
+            </h:panelGrid>
+            <p class="hint">A numbered venue gets one seat per unit of capacity, laid out in rows of the width above.</p>
+            <h:commandButton value="#{adminVenueBean.editing ? 'Save changes' : 'Create venue'}"
+                             action="#{adminVenueBean.save}" />
+            <h:commandButton value="Cancel" action="#{adminVenueBean.startCreate}"
+                             rendered="#{adminVenueBean.editing}" immediate="true" />
+        </h:form>
+
+        <h:panelGroup rendered="#{empty adminVenueBean.venues}">
+            <p>No venues yet. Create the first one above.</p>
+        </h:panelGroup>
+
+        <h:panelGroup rendered="#{not empty adminVenueBean.venues}" layout="block">
+            <table class="admin-table">
+                <thead>
+                    <tr><th>Name</th><th>Seating</th><th>Capacity</th><th>Seat map</th><th></th></tr>
+                </thead>
+                <tbody>
+                    <ui:repeat value="#{adminVenueBean.venues}" var="venue">
+                        <tr>
+                            <td>#{venue.vname}</td>
+                            <td>#{venue.numbered ? 'Numbered' : 'General admission'}</td>
+                            <td>#{venue.vcapacity}</td>
+                            <td>
+                                <h:panelGroup rendered="#{venue.numbered}">
+                                    #{adminVenueBean.seatCountFor(venue.vid)} seats
+                                </h:panelGroup>
+                                <h:panelGroup rendered="#{!venue.numbered}">&#8212;</h:panelGroup>
+                            </td>
+                            <td>
+                                <h:form styleClass="inline-form">
+                                    <h:commandButton value="Edit" action="#{adminVenueBean.startEdit(venue)}" immediate="true" />
+                                    <h:commandButton value="Delete" action="#{adminVenueBean.delete(venue.vid)}"
+                                                     onclick="return confirm('Delete this venue?');" />
+                                </h:form>
+                            </td>
+                        </tr>
+                    </ui:repeat>
+                </tbody>
+            </table>
+        </h:panelGroup>
+    </ui:define>
+</ui:composition>

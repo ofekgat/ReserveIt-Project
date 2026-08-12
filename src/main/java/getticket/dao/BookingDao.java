@@ -16,6 +16,10 @@ public interface BookingDao {
     List<Booking> getBookingsByUser(int uid) throws SQLException;
     List<Booking> getBookingsByUser(int uid, Connection conn) throws SQLException;
 
+    /** All bookings in the system, newest first. For admin order tracking. */
+    List<Booking> getAll() throws SQLException;
+    List<Booking> getAll(Connection conn) throws SQLException;
+
     boolean update(Booking booking) throws SQLException;
     boolean update(Booking booking, Connection conn) throws SQLException;
 

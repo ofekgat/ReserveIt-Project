@@ -9,37 +9,60 @@
             <f:viewAction action="#{catalogBean.loadAllShows}" />
         </f:metadata>
 
-        <h:form styleClass="search-bar">
-            <h:inputText value="#{catalogBean.nameFilter}" title="Show name" />
-            <h:commandButton value="Search by name" action="#{catalogBean.searchByName}" />
+        <h:form id="searchForm">
+            <div class="search-bar">
+                <span class="filter-field">
+                    <h:outputLabel for="name" value="Show name" />
+                    <h:inputText id="name" value="#{catalogBean.nameFilter}" />
+                </span>
 
-            <h:inputText value="#{catalogBean.categoryFilter}" title="Category" />
-            <h:commandButton value="Filter by category" action="#{catalogBean.searchByCategory}" />
+                <span class="filter-field">
+                    <h:outputLabel for="category" value="Category" />
+                    <h:selectOneMenu id="category" value="#{catalogBean.categoryFilter}">
+                        <f:selectItem itemValue="" itemLabel="All categories" />
+                        <f:selectItems value="#{catalogBean.categories}" var="cat"
+                                       itemValue="#{cat}" itemLabel="#{cat}" />
+                        <f:ajax execute="@form" listener="#{catalogBean.applyFilters}" render="@form" />
+                    </h:selectOneMenu>
+                </span>
 
-            <h:inputText value="#{catalogBean.dateFilter}" title="yyyy-mm-dd">
-                <f:convertDateTime type="localDate" pattern="yyyy-MM-dd" />
-            </h:inputText>
-            <h:commandButton value="Filter by date" action="#{catalogBean.searchByDate}" />
+                <span class="filter-field">
+                    <h:outputLabel for="date" value="Date" />
+                    <h:selectOneMenu id="date" value="#{catalogBean.dateFilterText}">
+                        <f:selectItem itemValue="" itemLabel="All dates" />
+                        <f:selectItems value="#{catalogBean.scheduledDates}" var="showDate"
+                                       itemValue="#{catalogBean.dateOptionValue(showDate)}"
+                                       itemLabel="#{catalogBean.dateOptionLabel(showDate)}" />
+                        <f:ajax execute="@form" listener="#{catalogBean.applyFilters}" render="@form" />
+                    </h:selectOneMenu>
+                </span>
 
-            <h:commandButton value="Show all" action="#{catalogBean.loadAllShows}" />
+                <h:commandButton value="Search" action="#{catalogBean.applyFilters}">
+                    <f:ajax execute="@form" render="@form" />
+                </h:commandButton>
+                <h:commandButton value="Clear" action="#{catalogBean.clearFilters}"
+                                 rendered="#{catalogBean.filtered}">
+                    <f:ajax execute="@form" render="@form" />
+                </h:commandButton>
+            </div>
+
+            <h:panelGroup rendered="#{empty catalogBean.shows}">
+                <p>No shows match your search.</p>
+            </h:panelGroup>
+
+            <div class="show-grid">
+                <ui:repeat value="#{catalogBean.shows}" var="show">
+                    <div class="show-card">
+                        <h:graphicImage url="#{show.imageUrl}" rendered="#{not empty show.imageUrl}" />
+                        <h3>#{show.sname}</h3>
+                        <p class="category">#{show.category}</p>
+                        <p>#{show.description}</p>
+                        <h:link outcome="/showDetails" value="View showtimes">
+                            <f:param name="sid" value="#{show.sid}" />
+                        </h:link>
+                    </div>
+                </ui:repeat>
+            </div>
         </h:form>
-
-        <h:panelGroup rendered="#{empty catalogBean.shows}">
-            <p>No shows match your search.</p>
-        </h:panelGroup>
-
-        <div class="show-grid">
-            <ui:repeat value="#{catalogBean.shows}" var="show">
-                <div class="show-card">
-                    <h:graphicImage url="#{show.imageUrl}" rendered="#{not empty show.imageUrl}" />
-                    <h3>#{show.sname}</h3>
-                    <p class="category">#{show.category}</p>
-                    <p>#{show.description}</p>
-                    <h:link outcome="/showDetails" value="View showtimes">
-                        <f:param name="sid" value="#{show.sid}" />
-                    </h:link>
-                </div>
-            </ui:repeat>
-        </div>
     </ui:define>
 </ui:composition>

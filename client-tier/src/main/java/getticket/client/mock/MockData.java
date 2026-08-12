@@ -41,13 +41,20 @@ public final class MockData {
     }
 
     // ---- Seed reference data (venues, seats, shows, event instances) ----
+    // Venues/shows/instances are mutable CopyOnWriteArrayLists (not List.of()) so the
+    // admin screens can create/edit/delete them at runtime, same as the real DAOs would.
 
-    private static final List<Venue> VENUES = List.of(
+    private static final AtomicInteger NEXT_VENUE_ID = new AtomicInteger(3);
+    private static final List<Venue> VENUES = new CopyOnWriteArrayList<>(List.of(
             new Venue(1, "Main Hall", true, 40),
             new Venue(2, "Open Field Arena", false, 500)
-    );
+    ));
 
-    private static final List<Seat> SEATS = buildSeatsForVenue1();
+    /** Seats per row when laying out a new seat grid; the last row may be shorter. */
+    public static final int DEFAULT_SEATS_PER_ROW = 10;
+
+    private static final AtomicInteger NEXT_SEAT_ID = new AtomicInteger(41);
+    private static final List<Seat> SEATS = new CopyOnWriteArrayList<>(buildSeatsForVenue1());
 
     private static List<Seat> buildSeatsForVenue1() {
         List<Seat> seats = new ArrayList<>();
@@ -60,7 +67,23 @@ public final class MockData {
         return seats;
     }
 
-    private static final List<Show> SHOWS = List.of(
+    /**
+     * Lays out `count` seats for a venue, `seatsPerRow` to a row, in the rows
+     * following `rowOffset` (0 to start at row 1).
+     *
+     * A numbered venue with no seats renders an empty, unbookable seat map, so
+     * every numbered venue must get a grid when it is created or resized.
+     */
+    private static void buildSeatGrid(int vid, int count, int seatsPerRow, int rowOffset) {
+        int perRow = seatsPerRow > 0 ? seatsPerRow : DEFAULT_SEATS_PER_ROW;
+        for (int i = 0; i < count; i++) {
+            SEATS.add(new Seat(NEXT_SEAT_ID.getAndIncrement(), vid,
+                    rowOffset + (i / perRow) + 1, (i % perRow) + 1));
+        }
+    }
+
+    private static final AtomicInteger NEXT_SHOW_ID = new AtomicInteger(6);
+    private static final List<Show> SHOWS = new CopyOnWriteArrayList<>(List.of(
             new Show(1, "Hamilton", "The story of American founding father Alexander Hamilton, told through hip-hop, jazz and R&B.", "Musical",
                     "https://images.unsplash.com/photo-1503095396549-807759245b35?w=400"),
             new Show(2, "The Nutcracker", "The classic Tchaikovsky ballet, performed by the city ballet company.", "Ballet",
@@ -71,10 +94,11 @@ public final class MockData {
                     "https://images.unsplash.com/photo-1585699324551-f6c309eedeca?w=400"),
             new Show(5, "Romeo & Juliet", "Shakespeare's tragedy of star-crossed lovers, in modern dress.", "Theatre",
                     "https://images.unsplash.com/photo-1507924538820-ede94a04019d?w=400")
-    );
+    ));
 
     // Event instances are mutable (Available_tickets changes as bookings come in),
     // so this list is a CopyOnWriteArrayList rather than an immutable List.of().
+    private static final AtomicInteger NEXT_INSTANCE_ID = new AtomicInteger(7);
     private static final List<EventInstance> INSTANCES = new CopyOnWriteArrayList<>(List.of(
             new EventInstance(1, 1, 1, LocalDateTime.of(2026, 8, 10, 19, 0), 120.00, 40, "SCHEDULED"),
             new EventInstance(2, 1, 1, LocalDateTime.of(2026, 8, 11, 19, 0), 120.00, 40, "SCHEDULED"),
@@ -86,11 +110,12 @@ public final class MockData {
 
     // ---- Mutable "tables" seeded with a bit of demo history ----
 
-    private static final AtomicInteger NEXT_USER_ID = new AtomicInteger(4);
+    private static final AtomicInteger NEXT_USER_ID = new AtomicInteger(5);
     private static final List<User> USERS = new CopyOnWriteArrayList<>(List.of(
             new User(1, "demo", "demo123", "demo@getticket.example", "CUSTOMER"),
             new User(2, "alice", "alice123", "alice@getticket.example", "CUSTOMER"),
-            new User(3, "ben", "ben123", "ben@getticket.example", "CUSTOMER")
+            new User(3, "ben", "ben123", "ben@getticket.example", "CUSTOMER"),
+            new User(4, "admin", "admin123", "admin@getticket.example", "ADMIN")
     ));
 
     private static final AtomicInteger NEXT_BOOKING_ID = new AtomicInteger(3);
@@ -146,6 +171,41 @@ public final class MockData {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Catalog search with every filter applied together — any of them may be
+     * null/blank to mean "don't narrow by this".
+     */
+    public static List<Show> searchShows(String nameFragment, String category, LocalDate date) {
+        Set<Integer> sidsOnDate = date == null ? null : INSTANCES.stream()
+                .filter(i -> i.getStartTime().toLocalDate().equals(date))
+                .map(EventInstance::getSid)
+                .collect(Collectors.toSet());
+        String needle = nameFragment == null ? "" : nameFragment.trim().toLowerCase();
+
+        return SHOWS.stream()
+                .filter(s -> needle.isEmpty() || s.getSname().toLowerCase().contains(needle))
+                .filter(s -> category == null || category.isBlank()
+                        || s.getCategory().equalsIgnoreCase(category.trim()))
+                .filter(s -> sidsOnDate == null || sidsOnDate.contains(s.getSid()))
+                .sorted(Comparator.comparing(Show::getSname))
+                .collect(Collectors.toList());
+    }
+
+    /** Distinct categories actually in use, for the catalog's category dropdown. */
+    public static List<String> getAllCategories() {
+        return SHOWS.stream().map(Show::getCategory).distinct().sorted().collect(Collectors.toList());
+    }
+
+    /** Distinct dates that have at least one non-cancelled showtime, oldest first. */
+    public static List<LocalDate> getScheduledDates() {
+        return INSTANCES.stream()
+                .filter(i -> !"CANCELLED".equalsIgnoreCase(i.getEventStatus()))
+                .map(i -> i.getStartTime().toLocalDate())
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+    }
+
     public static List<Show> getShowsByDate(LocalDate date) {
         if (date == null) {
             return getAllShows();
@@ -160,7 +220,37 @@ public final class MockData {
                 .collect(Collectors.toList());
     }
 
+    // ---- Shows (admin) ----
+
+    public static synchronized Show createShow(String sname, String description, String category, String imageUrl) {
+        Show show = new Show(NEXT_SHOW_ID.getAndIncrement(), sname, description, category, imageUrl);
+        SHOWS.add(show);
+        return show;
+    }
+
+    /** Returns false if no show with that id exists. */
+    public static synchronized boolean updateShow(int sid, String sname, String description, String category, String imageUrl) {
+        Show existing = getShowById(sid);
+        if (existing == null) {
+            return false;
+        }
+        existing.setSname(sname);
+        existing.setDescription(description);
+        existing.setCategory(category);
+        existing.setImageUrl(imageUrl);
+        return true;
+    }
+
+    public static synchronized boolean deleteShow(int sid) {
+        INSTANCES.removeIf(i -> i.getSid() == sid);
+        return SHOWS.removeIf(s -> s.getSid() == sid);
+    }
+
     // ---- Venues / seats / event instances ----
+
+    public static List<Venue> getAllVenues() {
+        return VENUES.stream().sorted(Comparator.comparing(Venue::getVname)).collect(Collectors.toList());
+    }
 
     public static Venue getVenueById(int vid) {
         return VENUES.stream().filter(v -> v.getVid() == vid).findFirst().orElse(null);
@@ -169,6 +259,83 @@ public final class MockData {
     public static String venueNameFor(int vid) {
         Venue venue = getVenueById(vid);
         return venue != null ? venue.getVname() : ("Venue #" + vid);
+    }
+
+    // ---- Venues (admin) ----
+
+    /** Creates a venue and, when it uses numbered seating, its full seat grid. */
+    public static synchronized Venue createVenue(String vname, boolean numbered, int vcapacity, int seatsPerRow) {
+        Venue venue = new Venue(NEXT_VENUE_ID.getAndIncrement(), vname, numbered, vcapacity);
+        VENUES.add(venue);
+        if (numbered) {
+            buildSeatGrid(venue.getVid(), vcapacity, seatsPerRow, 0);
+        }
+        return venue;
+    }
+
+    /**
+     * Updates a venue and brings its seat map back in line with its capacity —
+     * comparing against the venue's capacity rather than its previous values, so
+     * a seat map that drifted out of sync is repaired on the next save. Growing
+     * only appends rows, leaving existing seats (and their tickets) in place.
+     */
+    public static synchronized boolean updateVenue(int vid, String vname, boolean numbered,
+                                                    int vcapacity, int seatsPerRow) {
+        Venue existing = getVenueById(vid);
+        if (existing == null) {
+            return false;
+        }
+
+        existing.setVname(vname);
+        existing.setNumbered(numbered);
+        existing.setVcapacity(vcapacity);
+
+        int currentSeatCount = getSeatsByVenue(vid).size();
+        int targetSeatCount = numbered ? vcapacity : 0;
+
+        if (targetSeatCount < currentSeatCount) {
+            SEATS.removeIf(s -> s.getVid() == vid);
+            if (targetSeatCount > 0) {
+                buildSeatGrid(vid, targetSeatCount, seatsPerRow, 0);
+            }
+        } else if (targetSeatCount > currentSeatCount) {
+            int startRow = getSeatsByVenue(vid).stream().mapToInt(Seat::getRowNum).max().orElse(0);
+            buildSeatGrid(vid, targetSeatCount - currentSeatCount, seatsPerRow, startRow);
+        }
+        return true;
+    }
+
+    public static synchronized boolean deleteVenue(int vid) {
+        SEATS.removeIf(s -> s.getVid() == vid);
+        return VENUES.removeIf(v -> v.getVid() == vid);
+    }
+
+    // ---- Event instances (admin) ----
+
+    public static synchronized EventInstance createInstance(int sid, int vid, LocalDateTime startTime,
+                                                              double ticketPrice, int availableTickets, String eventStatus) {
+        EventInstance instance = new EventInstance(
+                NEXT_INSTANCE_ID.getAndIncrement(), sid, vid, startTime, ticketPrice, availableTickets, eventStatus);
+        INSTANCES.add(instance);
+        return instance;
+    }
+
+    public static synchronized boolean updateInstance(int instanceId, int vid, LocalDateTime startTime,
+                                                        double ticketPrice, int availableTickets, String eventStatus) {
+        EventInstance existing = getInstanceById(instanceId);
+        if (existing == null) {
+            return false;
+        }
+        existing.setVid(vid);
+        existing.setStartTime(startTime);
+        existing.setTicketPrice(ticketPrice);
+        existing.setAvailableTickets(availableTickets);
+        existing.setEventStatus(eventStatus);
+        return true;
+    }
+
+    public static synchronized boolean deleteInstance(int instanceId) {
+        return INSTANCES.removeIf(i -> i.getInstanceId() == instanceId);
     }
 
     public static EventInstance getInstanceById(int instanceId) {
@@ -186,23 +353,38 @@ public final class MockData {
         return SEATS.stream().filter(s -> s.getVid() == vid).collect(Collectors.toList());
     }
 
-    /** Seats of the instance's venue that have no ticket yet for this instance. */
-    public static synchronized List<Seat> getAvailableSeats(int instanceId) {
+    /** Ids of seats already ticketed for this instance. */
+    public static synchronized Set<Integer> getTakenSeatIds(int instanceId) {
+        return TICKETS.stream()
+                .filter(t -> t.getInstanceId() == instanceId && t.getSeatId() != null)
+                .map(Ticket::getSeatId)
+                .collect(Collectors.toSet());
+    }
+
+    /** The instance venue's whole seat map, in row/seat order — taken seats included. */
+    public static synchronized List<Seat> getSeatMap(int instanceId) {
         EventInstance instance = getInstanceById(instanceId);
         if (instance == null) {
             return List.of();
         }
-        Set<Integer> takenSeatIds = TICKETS.stream()
-                .filter(t -> t.getInstanceId() == instanceId && t.getSeatId() != null)
-                .map(Ticket::getSeatId)
-                .collect(Collectors.toSet());
         return getSeatsByVenue(instance.getVid()).stream()
-                .filter(s -> !takenSeatIds.contains(s.getSeatId()))
                 .sorted(Comparator.comparingInt(Seat::getRowNum).thenComparingInt(Seat::getSeatNum))
                 .collect(Collectors.toList());
     }
 
+    /** Seats of the instance's venue that have no ticket yet for this instance. */
+    public static synchronized List<Seat> getAvailableSeats(int instanceId) {
+        Set<Integer> takenSeatIds = getTakenSeatIds(instanceId);
+        return getSeatMap(instanceId).stream()
+                .filter(s -> !takenSeatIds.contains(s.getSeatId()))
+                .collect(Collectors.toList());
+    }
+
     // ---- Users / auth (mock only — plaintext passwords, in-memory registration) ----
+
+    public static User getUserById(int uid) {
+        return USERS.stream().filter(u -> u.getUid() == uid).findFirst().orElse(null);
+    }
 
     public static User getUserByUsername(String uname) {
         if (uname == null) {
@@ -236,8 +418,19 @@ public final class MockData {
 
     /** Booking history enriched with show/venue/time for display on myBookings.xhtml. */
     public static List<BookingSummary> getBookingSummariesByUser(int uid) {
+        return summarize(getBookingsByUser(uid));
+    }
+
+    /** Every booking in the system, enriched the same way, newest first. For admin order tracking. */
+    public static List<BookingSummary> getAllBookingSummaries() {
+        List<Booking> all = new ArrayList<>(BOOKINGS);
+        all.sort(Comparator.comparing(Booking::getBookingTime).reversed());
+        return summarize(all);
+    }
+
+    private static List<BookingSummary> summarize(List<Booking> bookings) {
         List<BookingSummary> summaries = new ArrayList<>();
-        for (Booking booking : getBookingsByUser(uid)) {
+        for (Booking booking : bookings) {
             List<Ticket> tickets = getTicketsByBooking(booking.getBookingId());
             if (tickets.isEmpty()) {
                 continue;
@@ -252,6 +445,16 @@ public final class MockData {
                     tickets.size()));
         }
         return summaries;
+    }
+
+    /** Admin: overrides a booking's status (e.g. to CANCELLED). Returns false if no such booking exists. */
+    public static synchronized boolean updateBookingStatus(int bookingId, String status) {
+        Booking booking = BOOKINGS.stream().filter(b -> b.getBookingId() == bookingId).findFirst().orElse(null);
+        if (booking == null) {
+            return false;
+        }
+        booking.setStatus(status);
+        return true;
     }
 
     /**

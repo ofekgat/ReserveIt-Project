@@ -37,6 +37,18 @@ public interface ShowDao {
     List<Show> getShowsByDate(LocalDate date) throws SQLException;
     List<Show> getShowsByDate(LocalDate date, Connection conn) throws SQLException;
 
+    /**
+     * Catalog search with every filter applied together — any of them may be
+     * null/blank to mean "don't narrow by this". Passing all three empty
+     * returns the whole catalog.
+     */
+    List<Show> search(String nameFragment, String category, LocalDate date) throws SQLException;
+    List<Show> search(String nameFragment, String category, LocalDate date, Connection conn) throws SQLException;
+
+    /** Distinct categories actually in use, for the catalog's category dropdown. */
+    List<String> getAllCategories() throws SQLException;
+    List<String> getAllCategories(Connection conn) throws SQLException;
+
     boolean update(Show show) throws SQLException;
     boolean update(Show show, Connection conn) throws SQLException;
 

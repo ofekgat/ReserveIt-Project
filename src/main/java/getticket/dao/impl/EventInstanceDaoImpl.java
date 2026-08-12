@@ -102,6 +102,25 @@ public class EventInstanceDaoImpl extends BaseDao implements EventInstanceDao {
     }
 
     @Override
+    public List<java.time.LocalDate> getScheduledDates() throws SQLException {
+        return withConnection(this::getScheduledDates);
+    }
+
+    @Override
+    public List<java.time.LocalDate> getScheduledDates(Connection conn) throws SQLException {
+        String sql = "SELECT DISTINCT DATE(Start_time) AS Show_date FROM Event_Instances " +
+                "WHERE Event_Status <> 'CANCELLED' ORDER BY Show_date";
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            List<java.time.LocalDate> dates = new ArrayList<>();
+            while (rs.next()) {
+                dates.add(rs.getDate("Show_date").toLocalDate());
+            }
+            return dates;
+        }
+    }
+
+    @Override
     public boolean update(EventInstance instance) throws SQLException {
         return withConnection(conn -> update(instance, conn));
     }

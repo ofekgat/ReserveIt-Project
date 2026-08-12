@@ -31,6 +31,13 @@ public interface TicketDao {
     int countByInstance(int instanceId) throws SQLException;
     int countByInstance(int instanceId, Connection conn) throws SQLException;
 
+    /**
+     * How many tickets have been sold for seats belonging to this venue, across
+     * every one of its event instances. Zero means the venue's seat map can
+     * still be rebuilt without invalidating anyone's existing ticket.
+     */
+    int countByVenue(int vid, Connection conn) throws SQLException;
+
     boolean delete(int ticketId) throws SQLException;
     boolean delete(int ticketId, Connection conn) throws SQLException;
 }

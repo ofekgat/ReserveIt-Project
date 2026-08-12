@@ -35,4 +35,7 @@ public interface SeatDao {
 
     boolean delete(int seatId) throws SQLException;
     boolean delete(int seatId, Connection conn) throws SQLException;
+
+    /** Drops a venue's whole seat map. Used when its seating layout is rebuilt. */
+    int deleteByVenue(int vid, Connection conn) throws SQLException;
 }

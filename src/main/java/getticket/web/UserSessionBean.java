@@ -26,6 +26,9 @@ public class UserSessionBean implements Serializable {
     /** Raw HttpSession attribute AuthFilter checks, since it runs before JSF would lazily create this bean. */
     static final String SESSION_UID_ATTRIBUTE = "uid";
 
+    /** Raw HttpSession attribute AdminFilter checks, set alongside SESSION_UID_ATTRIBUTE at login/register. */
+    static final String SESSION_ROLE_ATTRIBUTE = "role";
+
     private final UserDao userDao = new UserDaoImpl();
 
     // Login/registration form fields.
@@ -86,6 +89,8 @@ public class UserSessionBean implements Serializable {
     private void markLoggedIn() {
         FacesContext.getCurrentInstance().getExternalContext()
                 .getSessionMap().put(SESSION_UID_ATTRIBUTE, currentUser.getUid());
+        FacesContext.getCurrentInstance().getExternalContext()
+                .getSessionMap().put(SESSION_ROLE_ATTRIBUTE, currentUser.getRole());
     }
 
     private void clearForm() {
