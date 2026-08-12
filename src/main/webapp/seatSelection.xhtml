@@ -21,7 +21,7 @@
                     <p class="muted">Price per ticket:
                         <strong class="inline-price">
                             <h:outputText value="#{checkoutBean.eventInstance.ticketPrice}">
-                                <f:convertNumber type="currency" currencySymbol="$" />
+                                <f:convertNumber type="currency" currencySymbol="₪" />
                             </h:outputText>
                         </strong>
                     </p>
@@ -77,7 +77,7 @@
                         <span>Total</span>
                         <strong>
                             <h:outputText value="#{checkoutBean.totalPrice}">
-                                <f:convertNumber type="currency" currencySymbol="$" />
+                                <f:convertNumber type="currency" currencySymbol="₪" />
                             </h:outputText>
                         </strong>
                     </div>
@@ -115,7 +115,7 @@
                     <span>Total</span>
                     <strong>
                         <h:outputText value="#{checkoutBean.totalPrice}">
-                            <f:convertNumber type="currency" currencySymbol="$" />
+                            <f:convertNumber type="currency" currencySymbol="₪" />
                         </h:outputText>
                     </strong>
                 </h:panelGroup>
