@@ -13,7 +13,7 @@ INSERT INTO Locations (City, Address) VALUES
 -- NOTE: these are placeholder hash strings, not real hashes.
 -- Real values will come from PasswordUtil.
 INSERT INTO Users (Uname, Password, Email, Role) VALUES
-('admin', '$2a$10$PLACEHOLDER_HASH_ADMIN', 'admin@getticket.co.il', 'ADMIN'),
+('admin', '65536:KtgqM2XPBgUZTlB90DXvvg==:HOWtXUT6qaTeAh0UamIvj/eXl9WfEjFkD2vZ6T+Y6NQ=', 'admin@getticket.co.il', 'ADMIN'),
 ('yossi', '$2a$10$PLACEHOLDER_HASH_YOSSI', 'yossi@example.com',     'CUSTOMER'),
 ('dana',  '$2a$10$PLACEHOLDER_HASH_DANA',  'dana@example.com',      'CUSTOMER');
 
@@ -39,13 +39,13 @@ INSERT INTO Seats (Vid, Row_num, Seat_num) VALUES
 -- ---------- Event_Instances ----------
 INSERT INTO Event_Instances
     (Sid, Vid, Start_time, Ticket_price, Available_tickets, Event_Status) VALUES
-(1, 1, '2026-08-10 18:00:00',  45.00,  15, 'SCHEDULED'),
-(1, 1, '2026-08-10 21:00:00',  45.00,  15, 'SCHEDULED'),
-(2, 2, '2026-09-01 19:30:00', 120.00, 500, 'SCHEDULED');
+(1, 1, '2026-08-10 18:00:00',  40.00,  15, 'SCHEDULED'),
+(1, 1, '2026-08-10 21:00:00',  40.00,  15, 'SCHEDULED'),
+(2, 2, '2026-09-01 19:30:00',  80.00, 500, 'SCHEDULED');
 
 -- ---------- Bookings + Tickets ----------
 -- Yossi buys two adjacent numbered seats (row 1, seats 1-2)
-INSERT INTO Bookings (Uid, Total_price, Status) VALUES (2, 90.00, 'PAID');
+INSERT INTO Bookings (Uid, Total_price, Status) VALUES (2, 80.00, 'PAID');
 INSERT INTO Tickets (Booking_id, Instance_id, Seat_id) VALUES
 (1, 1, 1),
 (1, 1, 2);
@@ -53,7 +53,7 @@ UPDATE Event_Instances SET Available_tickets = Available_tickets - 2
 WHERE Instance_id = 1;
 
 -- Dana buys three general-admission tickets (Seat_id stays NULL)
-INSERT INTO Bookings (Uid, Total_price, Status) VALUES (3, 360.00, 'PAID');
+INSERT INTO Bookings (Uid, Total_price, Status) VALUES (3, 240.00, 'PAID');
 INSERT INTO Tickets (Booking_id, Instance_id, Seat_id) VALUES
 (2, 3, NULL),
 (2, 3, NULL),
