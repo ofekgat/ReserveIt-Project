@@ -59,6 +59,10 @@
         <filter-name>AdminFilter</filter-name>
         <url-pattern>/adminOrders.xhtml</url-pattern>
     </filter-mapping>
+    <filter-mapping>
+        <filter-name>AdminFilter</filter-name>
+        <url-pattern>/adminReports.xhtml</url-pattern>
+    </filter-mapping>
 
     <welcome-file-list>
         <welcome-file>login.xhtml</welcome-file>

@@ -1,0 +1,231 @@
+<ui:composition template="/WEB-INF/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns:pt="http://xmlns.jcp.org/jsf/passthrough">
+    <ui:define name="title">Reports - ReserveIt</ui:define>
+    <ui:define name="content">
+        <f:metadata>
+            <f:viewAction action="#{adminReportsBean.loadDefault}" onPostback="false" />
+        </f:metadata>
+
+        <section class="screen-heading">
+            <div>
+                <span class="eyebrow">ADMIN</span>
+                <h1>Sales reports</h1>
+                <p class="muted">Pick a period, then read the totals and the breakdown of every order in it.</p>
+            </div>
+            <div class="heading-badge">📊 Reports</div>
+        </section>
+
+        <ui:include src="/WEB-INF/adminNav.xhtml" />
+
+        <h:form id="reportForm" styleClass="filter-card glass-card">
+            <div class="filter-field">
+                <h:outputLabel for="fromDate" value="From" />
+                <div class="input-wrap">
+                    <h:inputText id="fromDate" value="#{adminReportsBean.fromDateText}" pt:type="date" />
+                </div>
+            </div>
+            <div class="filter-field">
+                <h:outputLabel for="toDate" value="To" />
+                <div class="input-wrap">
+                    <h:inputText id="toDate" value="#{adminReportsBean.toDateText}" pt:type="date" />
+                </div>
+            </div>
+            <div class="filter-field">
+                <h:outputLabel for="status" value="Status" />
+                <div class="input-wrap">
+                    <h:selectOneMenu id="status" value="#{adminReportsBean.statusFilter}" styleClass="filter-select">
+                        <f:selectItem itemValue="" itemLabel="All statuses" />
+                        <f:selectItems value="#{adminReportsBean.statusOptions}" />
+                    </h:selectOneMenu>
+                </div>
+            </div>
+            <div class="filter-actions">
+                <h:commandButton value="Generate" action="#{adminReportsBean.generate}"
+                                 styleClass="primary-button filter-button" />
+                <h:commandButton value="Reset" action="#{adminReportsBean.reset}"
+                                 styleClass="ghost-button filter-button" immediate="false" />
+            </div>
+        </h:form>
+
+        <h:panelGroup rendered="#{not empty adminReportsBean.report}">
+
+            <h:panelGroup rendered="#{empty adminReportsBean.report.lines}" layout="block"
+                          styleClass="empty-state glass-card">
+                <div class="empty-icon">📊</div>
+                <h2>No orders in this period</h2>
+                <p>Nothing matched #{adminReportsBean.report.rangeLabel}. Try a wider range.</p>
+            </h:panelGroup>
+
+            <h:panelGroup rendered="#{not empty adminReportsBean.report.lines}">
+                <div class="report-period">
+                    <span class="eyebrow">PERIOD</span>
+                    <strong>#{adminReportsBean.report.rangeLabel}</strong>
+                </div>
+
+                <div class="report-stats">
+                    <div class="report-stat glass-card">
+                        <span class="report-stat-label">Orders</span>
+                        <strong class="report-stat-value">#{adminReportsBean.report.totalOrders}</strong>
+                    </div>
+                    <div class="report-stat glass-card">
+                        <span class="report-stat-label">Tickets sold</span>
+                        <strong class="report-stat-value">#{adminReportsBean.report.ticketsSold}</strong>
+                    </div>
+                    <div class="report-stat glass-card">
+                        <span class="report-stat-label">Revenue</span>
+                        <strong class="report-stat-value">
+                            <h:outputText value="#{adminReportsBean.report.revenue}">
+                                <f:convertNumber type="currency" currencySymbol="₪" />
+                            </h:outputText>
+                        </strong>
+                    </div>
+                    <div class="report-stat glass-card">
+                        <span class="report-stat-label">Average order</span>
+                        <strong class="report-stat-value">
+                            <h:outputText value="#{adminReportsBean.report.averageOrderValue}">
+                                <f:convertNumber type="currency" currencySymbol="₪" />
+                            </h:outputText>
+                        </strong>
+                    </div>
+                    <div class="report-stat glass-card">
+                        <span class="report-stat-label">Cancelled</span>
+                        <strong class="report-stat-value">#{adminReportsBean.report.cancelledOrders}</strong>
+                    </div>
+                </div>
+
+                <p class="muted report-note">
+                    Tickets and money count sold orders only — cancelled orders are listed and
+                    counted separately, never as revenue.
+                </p>
+
+                <div class="report-grid">
+                    <div class="glass-card report-panel">
+                        <h2>By show</h2>
+                        <table class="admin-table report-table">
+                            <thead>
+                                <tr>
+                                    <th>Show</th>
+                                    <th>Orders</th>
+                                    <th>Tickets</th>
+                                    <th>Revenue</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <ui:repeat value="#{adminReportsBean.report.byShow}" var="group">
+                                    <tr>
+                                        <td>#{group.label}</td>
+                                        <td>#{group.orders}</td>
+                                        <td>#{group.tickets}</td>
+                                        <td>
+                                            <h:outputText value="#{group.revenue}">
+                                                <f:convertNumber type="currency" currencySymbol="₪" />
+                                            </h:outputText>
+                                        </td>
+                                    </tr>
+                                </ui:repeat>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="glass-card report-panel">
+                        <h2>By venue</h2>
+                        <table class="admin-table report-table">
+                            <thead>
+                                <tr>
+                                    <th>Venue</th>
+                                    <th>Orders</th>
+                                    <th>Tickets</th>
+                                    <th>Revenue</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <ui:repeat value="#{adminReportsBean.report.byVenue}" var="group">
+                                    <tr>
+                                        <td>#{group.label}</td>
+                                        <td>#{group.orders}</td>
+                                        <td>#{group.tickets}</td>
+                                        <td>
+                                            <h:outputText value="#{group.revenue}">
+                                                <f:convertNumber type="currency" currencySymbol="₪" />
+                                            </h:outputText>
+                                        </td>
+                                    </tr>
+                                </ui:repeat>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="glass-card report-panel">
+                        <h2>By status</h2>
+                        <table class="admin-table report-table">
+                            <thead>
+                                <tr>
+                                    <th>Status</th>
+                                    <th>Orders</th>
+                                    <th>Tickets</th>
+                                    <th>Revenue</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <ui:repeat value="#{adminReportsBean.report.byStatus}" var="group">
+                                    <tr>
+                                        <td>#{group.label}</td>
+                                        <td>#{group.orders}</td>
+                                        <td>#{group.tickets}</td>
+                                        <td>
+                                            <h:outputText value="#{group.revenue}">
+                                                <f:convertNumber type="currency" currencySymbol="₪" />
+                                            </h:outputText>
+                                        </td>
+                                    </tr>
+                                </ui:repeat>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <h2 class="report-lines-title">Orders in this report</h2>
+                <h:panelGroup layout="block" styleClass="admin-table-wrap glass-card">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Order #</th>
+                                <th>Placed</th>
+                                <th>Customer</th>
+                                <th>Show</th>
+                                <th>Venue</th>
+                                <th>Showtime</th>
+                                <th>Tickets</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <ui:repeat value="#{adminReportsBean.report.lines}" var="order">
+                                <tr>
+                                    <td>##{order.booking.bookingId}</td>
+                                    <td>#{adminReportsBean.formatDateTime(order.booking.bookingTime)}</td>
+                                    <td>#{order.username}</td>
+                                    <td>#{order.showName}</td>
+                                    <td>#{order.venueName}</td>
+                                    <td>#{adminReportsBean.formatDateTime(order.showTime)}</td>
+                                    <td>#{order.ticketCount}</td>
+                                    <td>
+                                        <h:outputText value="#{order.booking.totalPrice}">
+                                            <f:convertNumber type="currency" currencySymbol="₪" />
+                                        </h:outputText>
+                                    </td>
+                                    <td>#{order.booking.status}</td>
+                                </tr>
+                            </ui:repeat>
+                        </tbody>
+                    </table>
+                </h:panelGroup>
+            </h:panelGroup>
+        </h:panelGroup>
+    </ui:define>
+</ui:composition>

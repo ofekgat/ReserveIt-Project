@@ -29,6 +29,7 @@
                     <h:link outcome="/adminVenues" value="Venues" styleClass="nav-link" />
                     <h:link outcome="/adminShows" value="Shows admin" styleClass="nav-link" />
                     <h:link outcome="/adminOrders" value="Orders" styleClass="nav-link" />
+                    <h:link outcome="/adminReports" value="Reports" styleClass="nav-link" />
                 </h:panelGroup>
                 <h:panelGroup rendered="#{userSessionBean.loggedIn}" layout="block" styleClass="account-area">
                     <span class="welcome-text">Hi, #{userSessionBean.currentUser.uname}</span>
@@ -44,7 +45,10 @@
             </nav>
         </header>
 
-        <h:messages globalOnly="false" layout="list" styleClass="messages glass-card" />
+        <!-- showDetail: the beans put the useful sentence in the message detail, so without
+             this the banner would read just "Error" / "Success". -->
+        <h:messages globalOnly="false" layout="list" showSummary="false" showDetail="true"
+                    styleClass="messages glass-card" />
 
         <main class="page-content">
             <ui:insert name="content" />

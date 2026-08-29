@@ -55,9 +55,11 @@
                                 <td><h:outputText value="#{order.booking.totalPrice}"><f:convertNumber type="currency" currencySymbol="₪" /></h:outputText></td>
                                 <td>#{adminOrdersBean.formatDateTime(order.booking.bookingTime)}</td>
                                 <td>
-                                    <h:selectOneMenu value="#{order.booking.status}">
-                                        <f:selectItems value="#{adminOrdersBean.statusOptions}" />
-                                    </h:selectOneMenu>
+                                    <span class="input-wrap">
+                                        <h:selectOneMenu value="#{order.booking.status}" styleClass="admin-select">
+                                            <f:selectItems value="#{adminOrdersBean.statusOptions}" />
+                                        </h:selectOneMenu>
+                                    </span>
                                 </td>
                                 <td>
                                     <h:commandButton value="Update" action="#{adminOrdersBean.updateStatus(order)}"
