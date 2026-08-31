@@ -4,6 +4,7 @@ import getticket.dao.BookingDao;
 import getticket.model.Booking;
 
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,9 +22,9 @@ public class BookingDaoImpl extends BaseDao implements BookingDao {
         String sql = "INSERT INTO Bookings (Uid, Booking_time, Total_price, Status) VALUES (?, ?, ?, ?)";
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, booking.getUid());
-            ps.setTimestamp(2, booking.getBookingTime() != null
-                    ? Timestamp.valueOf(booking.getBookingTime())
-                    : new Timestamp(System.currentTimeMillis()));
+            ps.setObject(2, booking.getBookingTime() != null
+                    ? booking.getBookingTime()
+                    : LocalDateTime.now());
             ps.setDouble(3, booking.getTotalPrice());
             ps.setString(4, booking.getStatus());
             ps.executeUpdate();
@@ -126,7 +127,7 @@ public class BookingDaoImpl extends BaseDao implements BookingDao {
         Booking booking = new Booking();
         booking.setBookingId(rs.getInt("Booking_id"));
         booking.setUid(rs.getInt("Uid"));
-        booking.setBookingTime(rs.getTimestamp("Booking_time").toLocalDateTime());
+        booking.setBookingTime(rs.getObject("Booking_time", LocalDateTime.class));
         booking.setTotalPrice(rs.getDouble("Total_price"));
         booking.setStatus(rs.getString("Status"));
         return booking;

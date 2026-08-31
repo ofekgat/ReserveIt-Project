@@ -4,6 +4,7 @@ import getticket.dao.EventInstanceDao;
 import getticket.model.EventInstance;
 
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,7 +26,7 @@ public class EventInstanceDaoImpl extends BaseDao implements EventInstanceDao {
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, instance.getSid());
             ps.setInt(2, instance.getVid());
-            ps.setTimestamp(3, Timestamp.valueOf(instance.getStartTime()));
+            ps.setObject(3, instance.getStartTime());
             ps.setDouble(4, instance.getTicketPrice());
             ps.setInt(5, instance.getAvailableTickets());
             ps.setString(6, instance.getEventStatus());
@@ -114,7 +115,7 @@ public class EventInstanceDaoImpl extends BaseDao implements EventInstanceDao {
              ResultSet rs = ps.executeQuery()) {
             List<java.time.LocalDate> dates = new ArrayList<>();
             while (rs.next()) {
-                dates.add(rs.getDate("Show_date").toLocalDate());
+                dates.add(rs.getObject("Show_date", java.time.LocalDate.class));
             }
             return dates;
         }
@@ -132,7 +133,7 @@ public class EventInstanceDaoImpl extends BaseDao implements EventInstanceDao {
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, instance.getSid());
             ps.setInt(2, instance.getVid());
-            ps.setTimestamp(3, Timestamp.valueOf(instance.getStartTime()));
+            ps.setObject(3, instance.getStartTime());
             ps.setDouble(4, instance.getTicketPrice());
             ps.setInt(5, instance.getAvailableTickets());
             ps.setString(6, instance.getEventStatus());
@@ -178,12 +179,17 @@ public class EventInstanceDaoImpl extends BaseDao implements EventInstanceDao {
         return list;
     }
 
+    // Start_time is a wall-clock DATETIME: "the show starts at 20:00", with no time zone
+    // attached. getTimestamp()/setTimestamp() would read and write it through java.sql.Timestamp,
+    // which is an instant, so the driver converts between the connection time zone and the JVM
+    // default and the stored value stops matching what the screens show. Mapping the column
+    // straight to LocalDateTime keeps it conversion-free in every time zone.
     private EventInstance mapRow(ResultSet rs) throws SQLException {
         EventInstance instance = new EventInstance();
         instance.setInstanceId(rs.getInt("Instance_id"));
         instance.setSid(rs.getInt("Sid"));
         instance.setVid(rs.getInt("Vid"));
-        instance.setStartTime(rs.getTimestamp("Start_time").toLocalDateTime());
+        instance.setStartTime(rs.getObject("Start_time", LocalDateTime.class));
         instance.setTicketPrice(rs.getDouble("Ticket_price"));
         instance.setAvailableTickets(rs.getInt("Available_tickets"));
         instance.setEventStatus(rs.getString("Event_Status"));

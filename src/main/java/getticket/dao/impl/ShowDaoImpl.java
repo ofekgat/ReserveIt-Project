@@ -112,7 +112,7 @@ public class ShowDaoImpl extends BaseDao implements ShowDao {
                 "FROM Shows s JOIN Event_Instances ei ON ei.Sid = s.Sid " +
                 "WHERE DATE(ei.Start_time) = ? ORDER BY s.Sname";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setDate(1, Date.valueOf(date));
+            ps.setObject(1, date);
             try (ResultSet rs = ps.executeQuery()) {
                 return mapRows(rs);
             }
@@ -135,7 +135,7 @@ public class ShowDaoImpl extends BaseDao implements ShowDao {
 
         if (date != null) {
             sql.append(" JOIN Event_Instances ei ON ei.Sid = s.Sid AND DATE(ei.Start_time) = ?");
-            params.add(Date.valueOf(date));
+            params.add(date);
         }
         sql.append(" WHERE 1 = 1");
         if (nameFragment != null && !nameFragment.isBlank()) {
