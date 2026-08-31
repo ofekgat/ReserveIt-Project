@@ -3,7 +3,6 @@ package getticket.client.mock;
 import getticket.client.model.Booking;
 import getticket.client.model.BookingSummary;
 import getticket.client.model.EventInstance;
-import getticket.client.model.Review;
 import getticket.client.model.Seat;
 import getticket.client.model.Show;
 import getticket.client.model.Ticket;
@@ -131,13 +130,6 @@ public final class MockData {
             new Ticket(3, 2, 4, null),
             new Ticket(4, 2, 4, null),
             new Ticket(5, 2, 4, null)
-    ));
-
-    private static final AtomicInteger NEXT_REVIEW_ID = new AtomicInteger(4);
-    private static final List<Review> REVIEWS = new CopyOnWriteArrayList<>(List.of(
-            new Review(1, 1, 2, "alice", 5, "Incredible show, worth every penny!"),
-            new Review(2, 1, 3, "ben", 4, "Great energy, our seats were a bit far from the stage."),
-            new Review(3, 3, 2, "alice", 5, "Best jazz night I've been to in the city.")
     ));
 
     // ---- Shows / catalog ----
@@ -512,28 +504,5 @@ public final class MockData {
         instance.setAvailableTickets(instance.getAvailableTickets() - ticketQuantity);
 
         return booking;
-    }
-
-    // ---- Reviews ----
-
-    public static List<Review> getReviewsByShow(int sid) {
-        return REVIEWS.stream()
-                .filter(r -> r.getSid() == sid)
-                .sorted(Comparator.comparingInt(Review::getReviewId).reversed())
-                .collect(Collectors.toList());
-    }
-
-    public static double averageRating(int sid) {
-        List<Review> reviews = getReviewsByShow(sid);
-        if (reviews.isEmpty()) {
-            return 0;
-        }
-        return reviews.stream().mapToInt(Review::getRating).average().orElse(0);
-    }
-
-    public static synchronized Review addReview(int sid, int uid, String uname, int rating, String comment) {
-        Review review = new Review(NEXT_REVIEW_ID.getAndIncrement(), sid, uid, uname, rating, comment);
-        REVIEWS.add(review);
-        return review;
     }
 }

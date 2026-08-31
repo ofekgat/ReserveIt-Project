@@ -120,11 +120,6 @@ INSERT INTO Tickets (Booking_id, Instance_id, Seat_id) VALUES
 UPDATE Event_Instances SET Available_tickets = Available_tickets - 3
 WHERE Instance_id = 3;
 
--- ---------- Reviews ----------
-INSERT INTO Reviews (Sid, Uid, Rating, Comment) VALUES
-(1, 2, 5, 'Great show, the kids really enjoyed it'),
-(1, 3, 4, 'Good, but a little long');
-
 
 -- ============================================================
 -- VERIFICATION QUERIES
@@ -157,7 +152,3 @@ ORDER BY s.Row_num, s.Seat_num;
 -- D) Multiple NULL seats on one instance -> must SUCCEED.
 -- Proves general admission still works under the UNIQUE constraint.
 -- INSERT INTO Tickets (Booking_id, Instance_id, Seat_id) VALUES (2, 3, NULL);
-
-
--- E) Rating out of range -> must FAIL on the CHECK constraint.
--- INSERT INTO Reviews (Sid, Uid, Rating) VALUES (2, 2, 9);

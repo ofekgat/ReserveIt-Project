@@ -46,10 +46,6 @@
         <filter-name>AuthFilter</filter-name>
         <url-pattern>/myBookings.xhtml</url-pattern>
     </filter-mapping>
-    <filter-mapping>
-        <filter-name>AuthFilter</filter-name>
-        <url-pattern>/reviews.xhtml</url-pattern>
-    </filter-mapping>
 
     <filter>
         <filter-name>AdminFilter</filter-name>

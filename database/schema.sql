@@ -10,7 +10,6 @@ CREATE DATABASE IF NOT EXISTS getticket
 USE getticket;
 
 -- Drop in reverse dependency order so the script can be re-run
-DROP TABLE IF EXISTS Reviews;
 DROP TABLE IF EXISTS Tickets;
 DROP TABLE IF EXISTS Bookings;
 DROP TABLE IF EXISTS Event_Instances;
@@ -179,27 +178,4 @@ CREATE TABLE Tickets (
     CONSTRAINT uq_tickets_instance_seat UNIQUE (Instance_id, Seat_id),
 
     INDEX idx_tickets_booking (Booking_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-
--- ------------------------------------------------------------
--- 9. Reviews
--- One review per user per show.
--- ------------------------------------------------------------
-CREATE TABLE Reviews (
-    Review_id INT AUTO_INCREMENT PRIMARY KEY,
-    Sid       INT     NOT NULL,
-    Uid       INT     NOT NULL,
-    Rating    TINYINT NOT NULL,
-    Comment   TEXT,
-
-    CONSTRAINT fk_reviews_show
-        FOREIGN KEY (Sid) REFERENCES Shows(Sid)
-        ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT fk_reviews_user
-        FOREIGN KEY (Uid) REFERENCES Users(Uid)
-        ON DELETE CASCADE ON UPDATE CASCADE,
-
-    CONSTRAINT chk_reviews_rating CHECK (Rating BETWEEN 1 AND 5),
-    CONSTRAINT uq_reviews_user_show UNIQUE (Sid, Uid)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

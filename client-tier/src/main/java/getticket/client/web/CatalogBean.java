@@ -119,11 +119,6 @@ public class CatalogBean implements Serializable {
         return MockData.venueNameFor(vid);
     }
 
-    /** Average rating (0-5) for the currently selected show, for showDetails.xhtml. */
-    public double getAverageRating() {
-        return selectedShow != null ? MockData.averageRating(selectedShow.getSid()) : 0;
-    }
-
     public String getCategoryFilter() {
         return categoryFilter;
     }
