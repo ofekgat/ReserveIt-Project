@@ -101,7 +101,7 @@ The users `yossi` and `dana` are demo customers that exist so the seeded booking
 
 ```
 src/main/java/getticket/
-├── model/    – POJOs: Location, User, Show, Venue, Seat, EventInstance, Booking, Ticket, Review
+├── model/    – POJOs: Location, User, Show, Venue, Seat, EventInstance, Booking, Ticket
 ├── dao/      – DAO interfaces plus JDBC implementations (dao/impl), all using PreparedStatement
 ├── service/  – business logic: BookingService (atomic transactional booking, double-booking
 │               prevention), VenueService (venue plus seat map), OrderReportService (order data

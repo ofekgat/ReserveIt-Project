@@ -132,10 +132,6 @@ body {
     font-size: 0.9em;
 }
 
-.rating-summary {
-    color: #444;
-}
-
 .instance-list {
     list-style: none;
     padding: 0;
@@ -287,34 +283,6 @@ body {
 .status-badge.status-CANCELLED {
     background: #fee2e2;
     color: #991b1b;
-}
-
-/* Reviews (reviews.xhtml) */
-
-.review-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin: 16px 0 24px;
-}
-
-.review-card {
-    background: white;
-    border-radius: 8px;
-    padding: 14px 16px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.review-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 6px;
-}
-
-.stars {
-    color: #f5a623;
-    letter-spacing: 2px;
 }
 
 /* Admin area (venues / shows & showtimes / orders) */

@@ -14,17 +14,6 @@
             <h2>#{catalogBean.selectedShow.sname}</h2>
             <p class="category">#{catalogBean.selectedShow.category}</p>
             <p>#{catalogBean.selectedShow.description}</p>
-            <p class="rating-summary">
-                <h:outputText value="#{catalogBean.averageRating}" rendered="#{catalogBean.averageRating gt 0}">
-                    <f:convertNumber pattern="0.0" />
-                </h:outputText>
-                <h:outputText value=" / 5 average" rendered="#{catalogBean.averageRating gt 0}" />
-                <h:outputText value="No reviews yet" rendered="#{catalogBean.averageRating eq 0}" />
-                &#160;&#8211;&#160;
-                <h:link outcome="/reviews" value="See reviews">
-                    <f:param name="sid" value="#{catalogBean.sid}" />
-                </h:link>
-            </p>
 
             <h3>Showtimes</h3>
             <h:panelGroup rendered="#{empty catalogBean.instancesForSelectedShow}">
