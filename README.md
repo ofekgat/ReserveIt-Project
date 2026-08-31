@@ -14,6 +14,10 @@ A ticket booking system built on a three-tier architecture (JSF + Java + MySQL),
 
 Requirements: Java 17, Maven, MySQL 8, Tomcat 9.
 
+The steps are the same on every platform; only the deploy command differs, so
+both variants are given below. `CATALINA_HOME` is the Tomcat installation
+directory — the one containing `bin/` and `webapps/`.
+
 **1. Create the database**
 
 ```bash
@@ -26,18 +30,49 @@ mysql -u root -p getticket < database/seed_data.sql
 
 **2. Connection settings**
 
-Defaults live in `src/main/resources/db.properties` and can be overridden with the environment variables `DB_URL`, `DB_USER` and `DB_PASSWORD`.
+Connection details are read from `src/main/resources/db.properties`, which is
+the only source `ConnectionPool` looks at — edit it before building:
+
+```properties
+db.url=jdbc:mysql://localhost:3306/getticket?useSSL=false&serverTimezone=UTC
+db.user=root
+db.password=yourpassword
+```
+
+The file is packaged into the WAR at build time, so re-run `mvn clean package`
+after changing it. Note that the comment at the top of that file mentions
+overriding these values with `DB_URL` / `DB_USER` / `DB_PASSWORD` environment
+variables — that is not implemented; `ConnectionPool` never reads the
+environment.
 
 **3. Build and deploy**
+
+macOS/Linux:
 
 ```bash
 mvn clean package
 cp target/get-ticket.war $CATALINA_HOME/webapps/
 ```
 
-The application comes up at http://localhost:8080/get-ticket/
+Windows (PowerShell):
 
-The client mockup builds separately (`cd client-tier && mvn clean package`) and deploys as `get-ticket-client.war`.
+```powershell
+mvn clean package
+Copy-Item target\get-ticket.war $env:CATALINA_HOME\webapps\
+```
+
+Windows (Command Prompt):
+
+```bat
+mvn clean package
+copy target\get-ticket.war %CATALINA_HOME%\webapps\
+```
+
+Start Tomcat with `$CATALINA_HOME/bin/startup.sh` on macOS/Linux, or
+`%CATALINA_HOME%\bin\startup.bat` on Windows. The application then comes up at
+http://localhost:8080/get-ticket/
+
+The client mockup builds separately (`cd client-tier` then `mvn clean package`) and deploys the same way as `get-ticket-client.war`.
 
 ## Admin account
 
